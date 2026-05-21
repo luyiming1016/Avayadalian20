@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Avaya Dalian 20年 —— Backbone传奇</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<!-- ============= 标题屏 ============= -->
+<section id="screen-title" class="screen active">
+  <div class="title-bg"></div>
+  <div class="title-content">
+    <p class="title-tag">基于真实行业体验的虚构作品 · 2018 → 2026</p>
+    <h1><span class="avaya-logo">AVAYA</span> Dalian 20年</h1>
+    <h2>Backbone 传奇</h2>
+    <p class="title-sub">在大连软件园 15 号楼的一张工位上<br>用 8 年时间，把一个 L2 工程师做成传奇 Backbone</p>
+    <div class="title-btns">
+      <button class="btn-primary" onclick="goto('screen-create')">▶ 开始新游戏</button>
+      <button class="btn-ghost" onclick="loadGame()">⟲ 读取存档</button>
+      <button class="btn-ghost" onclick="goto('screen-credits')">ⓘ 关于</button>
+    </div>
+    <p class="title-foot">公司名、产品名、客户名均为艺术化处理 · 如与真实姓名/事件雷同仅作戏剧加工</p>
+  </div>
+</section>
+
+<!-- ============= 角色创建 ============= -->
+<section id="screen-create" class="screen">
+  <div class="create-bg"></div>
+  <div class="create-panel">
+    <h2 class="panel-title">2018-01-02 · 周二 · 大连软件园 15 号楼大堂</h2>
+    <p class="panel-sub">前台核验工卡照片，HR 在 3 楼会议室递上工牌，背景音是楼下地铁报站和电梯到达提示音 —— 这是你踏入职场的第一天。</p>
+
+    <div class="form-row">
+      <label>中文姓名</label>
+      <input id="char-name" type="text" maxlength="6" placeholder="例如：李墨">
+    </div>
+    <div class="form-row">
+      <label>英文名（公司用）</label>
+      <input id="char-en" type="text" maxlength="20" placeholder="例如：Mo Li">
+    </div>
+    <div class="form-row">
+      <label>性别</label>
+      <div class="opt-group" id="opt-gender">
+        <button class="opt active" data-v="M">男</button>
+        <button class="opt" data-v="F">女</button>
+        <button class="opt" data-v="N">不愿透露</button>
+      </div>
+    </div>
+    <div class="form-row">
+      <label>籍贯</label>
+      <div class="opt-group" id="opt-hometown">
+        <button class="opt active" data-v="dalian">大连本地</button>
+        <button class="opt" data-v="northeast">东北其他</button>
+        <button class="opt" data-v="south">关内</button>
+      </div>
+    </div>
+    <div class="form-row">
+      <label>学历背景</label>
+      <div class="opt-group" id="opt-edu">
+        <button class="opt" data-v="985">985/211</button>
+        <button class="opt active" data-v="normal">普通本科</button>
+        <button class="opt" data-v="haigui">海归硕士</button>
+      </div>
+    </div>
+    <div class="form-row">
+      <label>主修专精</label>
+      <div class="opt-group" id="opt-major">
+        <button class="opt active" data-v="voice">Voice / Aura Core</button>
+        <button class="opt" data-v="sip">Session & Routing</button>
+        <button class="opt" data-v="cc">Contact Center</button>
+        <button class="opt" data-v="cloud">Cloud / AXP</button>
+        <button class="opt" data-v="endpoint">Endpoints & Devices</button>
+      </div>
+    </div>
+    <div class="form-row">
+      <label>性格倾向</label>
+      <div class="trait-grid">
+        <div>
+          <span class="trait-lbl">内向 ↔ 外向</span>
+          <input type="range" id="char-ext" min="-5" max="5" value="0">
+          <span class="trait-val" id="trait-ext">0</span>
+        </div>
+        <div>
+          <span class="trait-lbl">谨慎 ↔ 果断</span>
+          <input type="range" id="char-dec" min="-5" max="5" value="0">
+          <span class="trait-val" id="trait-dec">0</span>
+        </div>
+      </div>
+    </div>
+    <div class="form-row">
+      <label>居住起点</label>
+      <div class="opt-group" id="opt-live">
+        <button class="opt active" data-v="share">与同事合租 · 软件园附近</button>
+        <button class="opt" data-v="solo">独居小公寓</button>
+        <button class="opt" data-v="relative">借住亲戚家</button>
+      </div>
+    </div>
+
+    <div class="create-btns">
+      <button class="btn-ghost" onclick="goto('screen-title')">← 返回</button>
+      <button class="btn-primary" onclick="confirmCreate()">推门进入 3 楼会议室 →</button>
+    </div>
+  </div>
+</section>
+
+<!-- ============= 主游戏屏 ============= -->
+<section id="screen-game" class="screen">
+  <!-- 顶部状态条 -->
+  <header class="topbar">
+    <div class="tb-left">
+      <span class="tb-date" id="ui-date">2018-01</span>
+      <span class="tb-season" id="ui-season">❄ 冬</span>
+      <span class="tb-grade" id="ui-grade">Contractor</span>
+    </div>
+    <div class="tb-center">
+      <span class="tb-stat" title="技术力">🔧 <b id="ui-tech">35</b></span>
+      <span class="tb-stat" title="沟通力">💬 <b id="ui-comm">40</b></span>
+      <span class="tb-stat" title="体力">💪 <b id="ui-stam">65</b></span>
+      <span class="tb-stat" title="情商">🧠 <b id="ui-eq">40</b></span>
+      <span class="tb-stat" title="英语">🌐 <b id="ui-en">50</b></span>
+      <span class="tb-stat" title="抗压">🛡 <b id="ui-res">40</b></span>
+      <span class="tb-stat" title="健康">❤ <b id="ui-hp">80</b></span>
+      <span class="tb-stat" title="金钱（万元）">¥ <b id="ui-money">12</b>w</span>
+    </div>
+    <div class="tb-right">
+      <button class="btn-icon" onclick="saveGame()" title="存档">💾</button>
+      <button class="btn-icon" onclick="goto('screen-title')" title="返回标题">⌂</button>
+    </div>
+  </header>
+
+  <!-- 主舞台 -->
+  <main class="stage">
+    <!-- 左侧：场景图 + 大事记 -->
+    <aside class="side-left">
+      <div class="scene-box" id="scene-box">
+        <div class="scene-bg" id="scene-bg"></div>
+        <div class="scene-title" id="scene-title">软件园 15 号楼</div>
+        <div class="scene-sub" id="scene-sub">APAC Tier-3 Backbone Support</div>
+      </div>
+      <div class="badge-row">
+        <div class="badge"><span class="badge-lbl">Site 人数</span><span class="badge-val" id="ui-site">100</span></div>
+        <div class="badge"><span class="badge-lbl">传奇分</span><span class="badge-val" id="ui-legend">0</span></div>
+        <div class="badge"><span class="badge-lbl">父亲分</span><span class="badge-val" id="ui-father">—</span></div>
+      </div>
+      <div class="relation-block">
+        <h4>人物关系</h4>
+        <div class="rel" id="rel-cruce"><span>Cruce ★</span><div class="bar"><i style="width:60%"></i></div><b>60</b></div>
+        <div class="rel" id="rel-david"><span>David（Manager）</span><div class="bar"><i style="width:50%"></i></div><b>50</b></div>
+        <div class="rel" id="rel-laok"><span>老 K</span><div class="bar"><i style="width:55%"></i></div><b>55</b></div>
+        <div class="rel" id="rel-spouse"><span>—（伴侣）</span><div class="bar"><i style="width:0%"></i></div><b>0</b></div>
+      </div>
+    </aside>
+
+    <!-- 中央：事件卡 -->
+    <section class="event-area">
+      <article class="event-card" id="event-card">
+        <h3 class="event-title" id="event-title">入职报到</h3>
+        <p class="event-meta" id="event-meta">第一幕 · 启程 · Story Beat #1</p>
+        <div class="event-body" id="event-body">
+          <p>事件文本将在这里显示。</p>
+        </div>
+        <div class="event-choices" id="event-choices">
+          <!-- 选项动态注入 -->
+        </div>
+      </article>
+    </section>
+
+    <!-- 右侧：日志 -->
+    <aside class="side-right">
+      <h4>本月行动日志</h4>
+      <ul class="log-list" id="log-list"></ul>
+    </aside>
+  </main>
+</section>
+
+<!-- ============= 年度回顾 ============= -->
+<section id="screen-yearreview" class="screen">
+  <div class="year-bg"></div>
+  <div class="year-card">
+    <p class="year-tag">年度回顾</p>
+    <h2 id="yr-title">2018 ｜《工牌、单人床、外卖箱》</h2>
+    <p class="year-sub" id="yr-sub">菜鸟入海</p>
+    <div class="year-grid" id="yr-grid"></div>
+    <p class="year-quote" id="yr-quote"></p>
+    <button class="btn-primary" onclick="continueYear()">进入下一年 →</button>
+  </div>
+</section>
+
+<!-- ============= 终章 · 最长的一天（分屏） ============= -->
+<section id="screen-finale" class="screen finale">
+  <div class="finale-split">
+    <div class="finale-left">
+      <div class="hr-doc">
+        <div class="hr-header">
+          <span class="hr-logo">A V A R A</span>
+          <span class="hr-date" id="fin-date">2026-10-?? 15:00</span>
+        </div>
+        <h3 class="hr-title">Notification of Position Elimination</h3>
+        <p>Dear <b id="fin-name">Mo Li</b>,</p>
+        <p>This letter confirms the elimination of your position as <b>Backbone Engineer · L15-2</b> at Avara Dalian Site, effective at the end of business day on the date above.</p>
+        <p>This decision is part of a company-wide cost optimization following the Infinity transformation period.</p>
+        <p>Your separation package: <b id="fin-pkg">N + 3</b> months. Outplacement support and 6-month medical extension are included.</p>
+        <p>We thank you for your <b id="fin-years">8</b> years of contribution to Avara.</p>
+        <p class="hr-sign">— Cathy Wen, HR Business Partner</p>
+      </div>
+    </div>
+    <div class="finale-right">
+      <div class="cry-bg"></div>
+      <div class="cry-overlay">
+        <span class="cry-text">哇 —— 哇 —— 哇 ——</span>
+        <span class="cry-sub" id="fin-baby">"恭喜，是个 <b>男孩</b>。"</span>
+        <span class="cry-time" id="fin-time">2026-10-?? 15:00:0?</span>
+      </div>
+    </div>
+  </div>
+  <div class="finale-bottom">
+    <p class="finale-monologue" id="fin-mono">在我失去一个身份的同一秒，我成为了另一个身份。</p>
+    <button class="btn-primary" onclick="enterEpilogue()">走出医院 →</button>
+  </div>
+</section>
+
+<!-- ============= 尾声章 · 新生 ============= -->
+<section id="screen-epilogue" class="screen">
+  <div class="epi-bg"></div>
+  <div class="epi-card">
+    <h2 id="epi-title">尾声章 · 新生 / Reborn</h2>
+    <p class="epi-narr" id="epi-narr">医院走廊一镜到底，背景是大连冬夜的风。你在医院楼下站了很久。</p>
+    <div class="epi-question">
+      <h3 id="epi-q">接下来你怎么选？</h3>
+      <div class="epi-choices" id="epi-choices"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============= 结局卡 ============= -->
+<section id="screen-ending" class="screen">
+  <div class="end-bg"></div>
+  <div class="end-card">
+    <p class="end-tag" id="end-tag">结局解锁</p>
+    <h1 id="end-name">「云上重生」</h1>
+    <p class="end-narr" id="end-narr"></p>
+    <div class="end-stats" id="end-stats"></div>
+    <p class="end-quote">"Backbone，不只是脊梁。<br>是这个时代抛下你的时候，你还在替下一代撑住的那根骨头。"</p>
+    <div class="end-btns">
+      <button class="btn-primary" onclick="goto('screen-title')">回到标题</button>
+      <button class="btn-ghost" onclick="showAchievements()">查看成就</button>
+    </div>
+  </div>
+</section>
+
+<!-- ============= 关于 ============= -->
+<section id="screen-credits" class="screen">
+  <div class="credit-card">
+    <h2>关于 · About</h2>
+    <p><b>Avaya Dalian 20年 —— Backbone 传奇</b> 是一款基于真实大连 Avaya Backbone 技术支持工作生活体验创作的剧情向模拟经营游戏 demo。</p>
+    <p>本作覆盖 2018–2026 共 9 个游戏内年份，主线由 12 个不可跳过的 Story Beat 构成；玩家的选择决定走到每个节点时的姿态与代价，不决定节点是否到来。</p>
+    <p>美术资源使用免费图片与 Emoji；公司名 "Avara"、产品名 "Infinity"、客户编号 "Bank-11/Auto-03" 等均为艺术化处理。</p>
+    <p class="cred-sign">made by Arthur · based on the RDF · 2026-05-21 · v1.0 playable demo</p>
+    <button class="btn-primary" onclick="goto('screen-title')">回到标题</button>
+  </div>
+</section>
+
+<!-- ============= 悬浮提示层 ============= -->
+<div id="toast" class="toast hidden"></div>
+<div id="modal" class="modal hidden">
+  <div class="modal-card">
+    <h3 id="modal-title"></h3>
+    <p id="modal-body"></p>
+    <button class="btn-primary" onclick="closeModal()">知道了</button>
+  </div>
+</div>
+
+<script src="content.js"></script>
+<script src="game.js"></script>
+</body>
+</html>
