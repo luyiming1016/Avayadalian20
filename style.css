@@ -1037,13 +1037,7 @@ input { font-family: inherit; }
 }
 
 #screen-game .topbar::before {
-  content: "Log Out";
-  position: absolute;
-  left: 5px;
-  top: 5px;
-  color: #fff;
-  font-size: 11px;
-  font-weight: 400;
+  content: none;
 }
 
 #screen-game .topbar::after {
@@ -1146,14 +1140,7 @@ input { font-family: inherit; }
 }
 
 #screen-game .side-left::before {
-  content: "Workflow";
-  display: block;
-  height: 18px;
-  padding: 2px 5px;
-  background: #7a7a7a;
-  color: #fff;
-  font-size: 12px;
-  line-height: 14px;
+  content: none;
 }
 
 /* ===== Engineer Profile 卡 ===== */
@@ -1418,19 +1405,7 @@ input { font-family: inherit; }
 }
 
 #screen-game .event-area::before {
-  content: "Server Messages";
-  position: sticky;
-  top: 0;
-  z-index: 2;
-  display: block;
-  height: 28px;
-  padding: 6px 10px;
-  background: linear-gradient(#fff, #edf3f6);
-  border-bottom: 1px solid #d5dee3;
-  color: #c40000;
-  font-size: 11px;
-  line-height: 16px;
-  font-weight: 400;
+  content: none;
 }
 
 #screen-game .event-card {

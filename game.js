@@ -123,9 +123,10 @@ function renderTopBar(){
     : month >= 6 && month <= 8 ? "☀ 夏"
     : month >= 9 && month <= 11 ? "🍂 秋"
     : "❄ 冬";
-  document.getElementById("ui-grade").textContent = S.player.grade;
+  const uiG = document.getElementById("ui-grade");
+  if (uiG) uiG.textContent = S.player.grade;
   const uiP = document.getElementById("ui-player");
-  if (uiP) uiP.textContent = `👤 ${S.player.name}${S.player.enName ? " · " + S.player.enName : ""}`;
+  if (uiP) uiP.textContent = `${S.player.name}${S.player.enName ? " · " + S.player.enName : ""}`;
 
   const p = S.player;
   const set = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = v; };
