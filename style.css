@@ -1852,3 +1852,802 @@ input { font-family: inherit; }
     font-size: 12px;
   }
 }
+
+/* ============= Enterprise Theme · 其他界面统一为 Avaya 工作台审美 ============= */
+
+#screen-title,
+#screen-create,
+#screen-yearreview,
+#screen-finale,
+#screen-epilogue,
+#screen-ending,
+#screen-credits {
+  color: #111;
+  font-family: Arial, "Microsoft YaHei", SimSun, sans-serif;
+  font-size: 13px;
+  line-height: 1.55;
+}
+
+#screen-title.active,
+#screen-create.active,
+#screen-yearreview.active,
+#screen-epilogue.active,
+#screen-ending.active,
+#screen-credits.active,
+#screen-finale.active {
+  background-color: #eef0f2 !important;
+  background-image:
+    linear-gradient(
+      #ffffff 0, #ffffff 48px,
+      #b60000 48px, #b60000 49px,
+      #d90000 49px, #d90000 54px,
+      transparent 54px
+    ) !important;
+  background-attachment: fixed !important;
+  background-repeat: no-repeat !important;
+  background-size: 100% 100% !important;
+  overflow-y: auto !important;
+  overflow-x: hidden;
+  padding-top: 54px;
+}
+
+#screen-title .title-bg,
+#screen-create .create-bg,
+#screen-create .create-bg::before,
+#screen-yearreview .year-bg,
+#screen-epilogue .epi-bg,
+#screen-epilogue .epi-bg::after,
+#screen-ending .end-bg {
+  display: none !important;
+}
+
+/* Avaya logo + 应用标题（与工作台顶栏一致，固定不随滚动） */
+#screen-title.active::before,
+#screen-create.active::before,
+#screen-yearreview.active::before,
+#screen-finale.active::before,
+#screen-epilogue.active::before,
+#screen-ending.active::before,
+#screen-credits.active::before {
+  content: "";
+  position: fixed;
+  left: 8px;
+  top: 5px;
+  z-index: 5;
+  width: 138px;
+  height: 36px;
+  background: url("assets/avaya-logo.svg") left center / contain no-repeat;
+  pointer-events: none;
+}
+
+#screen-title.active::after,
+#screen-create.active::after,
+#screen-yearreview.active::after,
+#screen-finale.active::after,
+#screen-epilogue.active::after,
+#screen-ending.active::after,
+#screen-credits.active::after {
+  content: "Avaya Dalian 20年 - Backbone 传奇\A v1.2";
+  white-space: pre;
+  position: fixed;
+  right: 12px;
+  top: 8px;
+  z-index: 5;
+  color: #000;
+  text-align: right;
+  font: 700 13px/15px Arial, "Microsoft YaHei", sans-serif;
+  pointer-events: none;
+}
+
+/* ===== 标题屏 ===== */
+#screen-title.active .title-content {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  max-width: 760px;
+  height: auto;
+  margin: 24px auto 28px;
+  padding: 0 18px;
+  text-align: center;
+}
+#screen-title .title-tag {
+  display: inline-block;
+  margin: 0 0 18px !important;
+  padding: 3px 12px;
+  background: #fff;
+  border: 1px solid #cfd8de;
+  color: #145164;
+  font-size: 11px !important;
+  letter-spacing: 2px !important;
+}
+#screen-title .title-content h1 {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background: none !important;
+  -webkit-text-fill-color: #111 !important;
+  color: #111 !important;
+  letter-spacing: 0 !important;
+  font: 600 36px/1.25 Arial, "Microsoft YaHei", sans-serif !important;
+  margin: 0 0 8px !important;
+  max-width: 100%;
+}
+#screen-title .avaya-logo {
+  width: 1.7em;
+  height: 0.5em;
+  margin: 0;
+}
+#screen-title .title-content h2 {
+  color: #c40000 !important;
+  font: 500 22px/1.3 Arial, "Microsoft YaHei", sans-serif !important;
+  letter-spacing: 6px !important;
+  margin: 0 0 24px !important;
+}
+#screen-title .title-sub {
+  display: block;
+  max-width: 620px;
+  margin: 0 auto 28px !important;
+  padding: 14px 18px;
+  background: #fff !important;
+  border: 1px solid #d5dee3;
+  border-left: 4px solid #4a9bb1;
+  color: #333 !important;
+  font-size: 13px !important;
+  line-height: 1.85;
+  text-align: left;
+}
+#screen-title .title-btns {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px;
+  margin: 0 auto 24px !important;
+  max-width: 560px;
+}
+#screen-title .title-meta {
+  position: static !important;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 6px 14px;
+  margin: 8px 0 6px !important;
+  color: #555 !important;
+  font-size: 11px !important;
+  letter-spacing: 0 !important;
+}
+#screen-title .title-foot {
+  position: static !important;
+  margin: 4px 0 18px !important;
+  color: #777 !important;
+  font-size: 11px !important;
+}
+
+/* ===== 角色创建 ===== */
+#screen-create.active .create-panel {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  max-width: 780px;
+  height: auto !important;
+  margin: 24px auto 32px !important;
+  padding: 0 0 22px !important;
+  background: #fff !important;
+  border: 1px solid #d5dee3 !important;
+  border-radius: 0 !important;
+  box-shadow: 0 1px 2px rgba(0,0,0,.08);
+  overflow: visible !important;
+}
+#screen-create .panel-title {
+  margin: 0 !important;
+  padding: 8px 14px !important;
+  border-top: 1px solid #fff;
+  border-bottom: 1px solid #cfd8de;
+  background: linear-gradient(#f8fbfc, #dce7ec);
+  color: #145164 !important;
+  font: 700 13px/1.5 Arial, "Microsoft YaHei", sans-serif !important;
+  letter-spacing: 0 !important;
+}
+#screen-create .panel-sub {
+  margin: 0 0 16px !important;
+  padding: 12px 16px;
+  border-bottom: 1px solid #e6e6e6;
+  background: #fafcfd;
+  color: #555 !important;
+  font-size: 12px !important;
+  line-height: 1.7;
+}
+#screen-create .form-row {
+  padding: 0 18px;
+  margin-bottom: 16px !important;
+}
+#screen-create .form-row label {
+  display: block !important;
+  margin-bottom: 6px !important;
+  color: #444 !important;
+  font: 700 12px/1.5 Arial, "Microsoft YaHei", sans-serif !important;
+  letter-spacing: 0 !important;
+}
+#screen-create .form-row input[type="text"] {
+  width: 100%;
+  height: 32px;
+  padding: 4px 10px;
+  border: 1px solid #b6c2c9 !important;
+  border-radius: 0 !important;
+  background: #fff !important;
+  color: #111 !important;
+  font: 400 13px Arial, "Microsoft YaHei", sans-serif !important;
+}
+#screen-create .form-row input[type="text"]:focus {
+  outline: none !important;
+  border-color: #2f91bc !important;
+  box-shadow: 0 0 0 2px rgba(47,145,188,.18);
+}
+#screen-create .opt-group { gap: 6px; }
+#screen-create .opt {
+  min-height: 28px;
+  padding: 5px 12px !important;
+  border: 1px solid #b6c2c9 !important;
+  border-radius: 0 !important;
+  background: linear-gradient(#fff, #eef0f2) !important;
+  color: #333 !important;
+  font: 400 12px Arial, "Microsoft YaHei", sans-serif !important;
+}
+#screen-create .opt:hover {
+  background: #eaf4f8 !important;
+  border-color: #2f91bc !important;
+  color: #145164 !important;
+}
+#screen-create .opt.active {
+  background: linear-gradient(#d90000, #b00000) !important;
+  border-color: #800000 !important;
+  color: #fff !important;
+  font-weight: 700 !important;
+}
+#screen-create .trait-grid > div {
+  background: #fafcfd !important;
+  border: 1px solid #d5dee3 !important;
+  border-radius: 0 !important;
+}
+#screen-create .trait-lbl {
+  color: #444 !important;
+  font-weight: 600 !important;
+}
+#screen-create .trait-val {
+  color: #c40000 !important;
+  font-weight: 700 !important;
+}
+#screen-create .create-btns {
+  margin: 18px 18px 0 !important;
+  padding-top: 14px !important;
+  border-top: 1px solid #e1e5e8 !important;
+}
+
+/* ===== 年度回顾 ===== */
+#screen-yearreview.active .year-card {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  max-width: 760px;
+  margin: 28px auto !important;
+  padding: 0 0 22px !important;
+  background: #fff !important;
+  border: 1px solid #d5dee3 !important;
+  border-radius: 0 !important;
+  box-shadow: 0 1px 2px rgba(0,0,0,.08);
+  text-align: left !important;
+}
+#screen-yearreview .year-tag {
+  margin: 0 !important;
+  padding: 7px 12px;
+  border-top: 1px solid #fff;
+  border-bottom: 1px solid #cfd8de;
+  background: linear-gradient(#f8fbfc, #dce7ec);
+  color: #145164 !important;
+  font: 700 12px/1.5 Arial, "Microsoft YaHei", sans-serif !important;
+  letter-spacing: 2px !important;
+}
+#screen-yearreview .year-card h2 {
+  margin: 18px 22px 4px !important;
+  color: #111 !important;
+  font: 600 22px/1.35 Arial, "Microsoft YaHei", sans-serif !important;
+  letter-spacing: 0 !important;
+}
+#screen-yearreview .year-sub {
+  margin: 0 22px 18px !important;
+  padding: 0 0 10px !important;
+  border-bottom: 1px solid #e6e6e6;
+  color: #2f91bc !important;
+  font-size: 13px !important;
+  font-style: italic;
+}
+#screen-yearreview .year-grid {
+  margin: 0 22px !important;
+  gap: 8px !important;
+}
+#screen-yearreview .year-grid > div {
+  background: #fff !important;
+  border: 1px solid #d5dee3 !important;
+  border-left: 4px solid #4a9bb1 !important;
+  border-radius: 0 !important;
+  padding: 10px 12px !important;
+  color: #333 !important;
+  font-size: 12px !important;
+}
+#screen-yearreview .year-grid > div b {
+  color: #c40000 !important;
+  font-size: 18px !important;
+}
+#screen-yearreview .year-quote {
+  margin: 18px 22px !important;
+  padding: 12px 14px !important;
+  background: #fffdf4 !important;
+  border: 1px solid #f0d891 !important;
+  border-left: 4px solid #d7b85a !important;
+  color: #604400 !important;
+  font-style: italic;
+  font-size: 13px;
+  line-height: 1.75;
+}
+#screen-yearreview .year-card > button {
+  margin: 0 22px !important;
+}
+
+/* ===== 终章分屏 ===== */
+#screen-finale.active .finale-split {
+  height: auto;
+  min-height: 60vh;
+  margin: 16px;
+  border: 1px solid #d5dee3;
+  background: #fff;
+  box-shadow: 0 1px 2px rgba(0,0,0,.08);
+}
+#screen-finale.active .finale-left {
+  background: #fff !important;
+  padding: 26px 30px;
+  border-right: 1px solid #e1e5e8;
+}
+#screen-finale.active .hr-doc { line-height: 1.78; }
+#screen-finale.active .hr-header { border-bottom-color: #d90000; }
+#screen-finale.active .hr-logo { color: #d90000; }
+#screen-finale.active .finale-bottom {
+  margin: 0 16px 24px !important;
+  padding: 22px 24px !important;
+  background: #fff !important;
+  border: 1px solid #d5dee3 !important;
+  box-shadow: 0 1px 2px rgba(0,0,0,.08);
+}
+#screen-finale.active .finale-monologue {
+  color: #111 !important;
+  font-style: italic;
+  font-size: 16px !important;
+  line-height: 1.85;
+  letter-spacing: 0 !important;
+  max-width: 720px;
+  margin: 0 auto 20px !important;
+}
+
+/* ===== 尾声章 ===== */
+#screen-epilogue.active .epi-card {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  max-width: 720px;
+  margin: 28px auto !important;
+  padding: 0 0 22px !important;
+  background: #fff !important;
+  border: 1px solid #d5dee3 !important;
+  border-radius: 0 !important;
+  backdrop-filter: none !important;
+  box-shadow: 0 1px 2px rgba(0,0,0,.08);
+}
+#screen-epilogue .epi-card h2 {
+  margin: 0 !important;
+  padding: 8px 14px;
+  border-top: 1px solid #fff;
+  border-bottom: 1px solid #cfd8de;
+  background: linear-gradient(#f8fbfc, #dce7ec);
+  color: #145164 !important;
+  font: 700 14px/1.5 Arial, "Microsoft YaHei", sans-serif !important;
+  letter-spacing: 0 !important;
+}
+#screen-epilogue .epi-narr {
+  margin: 14px 18px 16px !important;
+  padding: 12px 14px;
+  border: 1px solid #d5dee3;
+  border-left: 4px solid #d7b85a;
+  background: #fffdf4;
+  color: #604400 !important;
+  font-style: italic;
+  font-size: 13px;
+  line-height: 1.85;
+}
+#screen-epilogue .epi-question h3 {
+  margin: 0 18px 12px !important;
+  color: #145164 !important;
+  font-size: 14px !important;
+}
+#screen-epilogue .epi-choices {
+  padding: 0 18px;
+  gap: 8px !important;
+  counter-reset: epi-choice;
+}
+#screen-epilogue .choice {
+  position: relative;
+  min-height: 56px;
+  margin: 0 !important;
+  padding: 12px 14px 12px 46px !important;
+  border: 1px solid #d7e1e5 !important;
+  border-left: 4px solid #4a9bb1 !important;
+  border-radius: 0 !important;
+  background: #fff !important;
+  color: #111 !important;
+  text-align: left;
+  font-size: 13px !important;
+  line-height: 1.6 !important;
+  transform: none !important;
+}
+#screen-epilogue .choice::before {
+  content: counter(epi-choice);
+  counter-increment: epi-choice;
+  position: absolute;
+  left: 12px;
+  top: 12px;
+  width: 24px;
+  height: 24px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: #d90000;
+  color: #fff;
+  font: 700 12px/1 Arial, sans-serif;
+}
+#screen-epilogue .choice:hover {
+  background: #eef8fb !important;
+  border-color: #2f91bc !important;
+  border-left-color: #d90000 !important;
+  transform: none !important;
+}
+
+/* ===== 结局卡 ===== */
+#screen-ending.active .end-card {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  max-width: 760px;
+  margin: 28px auto !important;
+  padding: 0 0 22px !important;
+  background: #fff !important;
+  border: 1px solid #d5dee3 !important;
+  border-radius: 0 !important;
+  box-shadow: 0 1px 2px rgba(0,0,0,.08);
+  text-align: left !important;
+}
+#screen-ending .end-tag {
+  margin: 0 !important;
+  padding: 7px 12px;
+  border-top: 1px solid #fff;
+  border-bottom: 1px solid #cfd8de;
+  background: linear-gradient(#f8fbfc, #dce7ec);
+  color: #145164 !important;
+  font: 700 12px/1.5 Arial, "Microsoft YaHei", sans-serif !important;
+  letter-spacing: 2px !important;
+}
+#screen-ending .end-card h1 {
+  margin: 18px 22px 6px !important;
+  background: none !important;
+  -webkit-text-fill-color: #111 !important;
+  color: #111 !important;
+  font: 600 28px/1.3 Arial, "Microsoft YaHei", sans-serif !important;
+  letter-spacing: 0 !important;
+}
+#screen-ending .end-narr {
+  margin: 0 22px 18px !important;
+  padding-bottom: 14px !important;
+  border-bottom: 1px solid #e6e6e6;
+  color: #333 !important;
+  font-size: 13px !important;
+  line-height: 1.85;
+}
+#screen-ending .end-stats {
+  margin: 0 22px !important;
+  gap: 8px !important;
+}
+#screen-ending .end-stats > div {
+  background: #fff !important;
+  border: 1px solid #d5dee3 !important;
+  border-left: 4px solid #4a9bb1 !important;
+  border-radius: 0 !important;
+  padding: 10px !important;
+  color: #555 !important;
+  font-size: 11px !important;
+}
+#screen-ending .end-stats > div b {
+  color: #c40000 !important;
+  font-size: 18px !important;
+}
+#screen-ending .end-quote {
+  margin: 18px 22px !important;
+  padding: 14px !important;
+  background: #fffdf4 !important;
+  border: 1px solid #f0d891 !important;
+  border-left: 4px solid #d7b85a !important;
+  color: #604400 !important;
+  font-style: italic !important;
+  font-size: 13px;
+  line-height: 1.85;
+}
+#screen-ending .end-btns {
+  margin: 0 22px !important;
+  justify-content: flex-end !important;
+  gap: 10px !important;
+}
+
+/* ===== 关于 ===== */
+#screen-credits.active .credit-card {
+  width: 100%;
+  max-width: 760px;
+  margin: 28px auto !important;
+  padding: 0 0 22px !important;
+  background: #fff !important;
+  border: 1px solid #d5dee3 !important;
+  border-radius: 0 !important;
+  box-shadow: 0 1px 2px rgba(0,0,0,.08);
+}
+#screen-credits .credit-card h2 {
+  margin: 0 !important;
+  padding: 8px 14px;
+  border-top: 1px solid #fff;
+  border-bottom: 1px solid #cfd8de;
+  background: linear-gradient(#f8fbfc, #dce7ec);
+  color: #145164 !important;
+  font: 700 14px/1.5 Arial, "Microsoft YaHei", sans-serif !important;
+}
+#screen-credits .credit-card p {
+  margin: 14px 22px !important;
+  color: #333 !important;
+  font-size: 13px !important;
+  line-height: 1.85;
+}
+#screen-credits .cred-sign {
+  margin: 18px 22px !important;
+  padding-top: 12px !important;
+  border-top: 1px solid #e6e6e6;
+  font-family: "Courier New", monospace !important;
+  color: #888 !important;
+  font-size: 11px !important;
+}
+#screen-credits > .credit-card > button {
+  margin: 0 22px !important;
+}
+
+/* ===== 统一企业风按钮（不影响工作台） ===== */
+#screen-title .btn-primary,
+#screen-create .btn-primary,
+#screen-yearreview .btn-primary,
+#screen-finale .btn-primary,
+#screen-epilogue .btn-primary,
+#screen-ending .btn-primary,
+#screen-credits .btn-primary {
+  background: linear-gradient(#d90000, #b00000) !important;
+  border: 1px solid #800000 !important;
+  border-radius: 2px !important;
+  padding: 8px 18px !important;
+  min-height: 32px !important;
+  color: #fff !important;
+  font: 700 13px Arial, "Microsoft YaHei", sans-serif !important;
+  letter-spacing: 0 !important;
+  box-shadow: 0 1px 0 rgba(0,0,0,.1) !important;
+  transform: none !important;
+}
+#screen-title .btn-primary:hover,
+#screen-create .btn-primary:hover,
+#screen-yearreview .btn-primary:hover,
+#screen-finale .btn-primary:hover,
+#screen-epilogue .btn-primary:hover,
+#screen-ending .btn-primary:hover,
+#screen-credits .btn-primary:hover {
+  background: linear-gradient(#e63c3c, #c00000) !important;
+  box-shadow: 0 2px 4px rgba(0,0,0,.18) !important;
+  transform: none !important;
+}
+
+#screen-title .btn-ghost,
+#screen-create .btn-ghost,
+#screen-yearreview .btn-ghost,
+#screen-finale .btn-ghost,
+#screen-epilogue .btn-ghost,
+#screen-ending .btn-ghost,
+#screen-credits .btn-ghost {
+  background: linear-gradient(#fff, #e7e7e7) !important;
+  border: 1px solid #a8b0b5 !important;
+  border-radius: 2px !important;
+  padding: 8px 16px !important;
+  min-height: 32px !important;
+  color: #111 !important;
+  font: 600 13px Arial, "Microsoft YaHei", sans-serif !important;
+  letter-spacing: 0 !important;
+}
+#screen-title .btn-ghost:hover,
+#screen-create .btn-ghost:hover,
+#screen-yearreview .btn-ghost:hover,
+#screen-finale .btn-ghost:hover,
+#screen-epilogue .btn-ghost:hover,
+#screen-ending .btn-ghost:hover,
+#screen-credits .btn-ghost:hover {
+  background: linear-gradient(#fafafa, #d8d8d8) !important;
+}
+
+/* ===== 模态框 / 提示框对齐企业风 ===== */
+.toast {
+  background: #fff !important;
+  border: 1px solid #d5dee3 !important;
+  border-left: 4px solid #d90000 !important;
+  border-radius: 0 !important;
+  color: #111 !important;
+  font: 600 13px Arial, "Microsoft YaHei", sans-serif !important;
+  box-shadow: 0 2px 6px rgba(0,0,0,.18) !important;
+}
+.modal-card {
+  background: #fff !important;
+  border: 1px solid #d5dee3 !important;
+  border-radius: 0 !important;
+  box-shadow: 0 6px 24px rgba(0,0,0,.25);
+}
+.modal-card h3 {
+  margin: -32px -32px 14px !important;
+  padding: 8px 14px;
+  border-bottom: 1px solid #cfd8de;
+  background: linear-gradient(#f8fbfc, #dce7ec);
+  color: #145164 !important;
+  font: 700 14px Arial, "Microsoft YaHei", sans-serif !important;
+}
+.modal-card p {
+  color: #333 !important;
+  font-size: 13px !important;
+  line-height: 1.75;
+}
+.modal-card .btn-primary {
+  background: linear-gradient(#d90000, #b00000) !important;
+  border: 1px solid #800000 !important;
+  border-radius: 2px !important;
+  color: #fff !important;
+  font: 700 13px Arial, "Microsoft YaHei", sans-serif !important;
+}
+
+/* ===== 移动端微调 ===== */
+@media (max-width: 760px) {
+  #screen-title.active::before,
+  #screen-create.active::before,
+  #screen-yearreview.active::before,
+  #screen-finale.active::before,
+  #screen-epilogue.active::before,
+  #screen-ending.active::before,
+  #screen-credits.active::before {
+    width: 100px;
+    height: 28px;
+    left: 6px;
+    top: 4px;
+  }
+  #screen-title.active::after,
+  #screen-create.active::after,
+  #screen-yearreview.active::after,
+  #screen-finale.active::after,
+  #screen-epilogue.active::after,
+  #screen-ending.active::after,
+  #screen-credits.active::after {
+    font-size: 10px;
+    line-height: 12px;
+    right: 8px;
+    top: 6px;
+  }
+  #screen-title.active,
+  #screen-create.active,
+  #screen-yearreview.active,
+  #screen-epilogue.active,
+  #screen-ending.active,
+  #screen-credits.active,
+  #screen-finale.active {
+    background-image:
+      linear-gradient(
+        #ffffff 0, #ffffff 42px,
+        #b60000 42px, #b60000 43px,
+        #d90000 43px, #d90000 48px,
+        transparent 48px
+      ) !important;
+    padding-top: 48px;
+  }
+
+  #screen-title.active .title-content {
+    padding: 0 14px;
+    margin: 18px auto 20px;
+  }
+  #screen-title .title-content h1 { font-size: 28px !important; }
+  #screen-title .avaya-logo { width: 1.9em; height: 0.55em; }
+  #screen-title .title-content h2 {
+    font-size: 18px !important;
+    letter-spacing: 4px !important;
+    margin: 0 0 18px !important;
+  }
+  #screen-title .title-sub {
+    font-size: 12px !important;
+    line-height: 1.75;
+    padding: 12px 14px;
+    margin-bottom: 22px !important;
+  }
+  #screen-title .title-btns {
+    flex-direction: column;
+    max-width: 320px;
+    margin-bottom: 18px !important;
+  }
+  #screen-title .title-meta { font-size: 10px !important; gap: 4px 10px; }
+
+  #screen-create.active .create-panel,
+  #screen-yearreview.active .year-card,
+  #screen-epilogue.active .epi-card,
+  #screen-ending.active .end-card,
+  #screen-credits.active .credit-card {
+    margin: 12px 8px !important;
+  }
+
+  #screen-create .form-row { padding: 0 14px; }
+  #screen-create .create-btns { margin: 16px 14px 0 !important; }
+  #screen-create .form-row input[type="text"] { height: 36px; font-size: 14px; }
+  #screen-create .opt { min-height: 34px; padding: 6px 10px !important; }
+
+  #screen-yearreview .year-card h2 {
+    margin: 14px 14px 4px !important;
+    font-size: 19px !important;
+  }
+  #screen-yearreview .year-sub,
+  #screen-yearreview .year-grid,
+  #screen-yearreview .year-quote,
+  #screen-yearreview .year-card > button {
+    margin-left: 14px !important;
+    margin-right: 14px !important;
+  }
+
+  #screen-epilogue .epi-narr,
+  #screen-epilogue .epi-question h3,
+  #screen-epilogue .epi-choices {
+    margin-left: 14px !important;
+    margin-right: 14px !important;
+    padding-left: 0;
+    padding-right: 0;
+  }
+  #screen-epilogue .epi-narr { margin: 14px 14px 14px !important; }
+
+  #screen-ending .end-card h1 {
+    margin: 16px 14px 6px !important;
+    font-size: 22px !important;
+  }
+  #screen-ending .end-narr,
+  #screen-ending .end-stats,
+  #screen-ending .end-quote,
+  #screen-ending .end-btns {
+    margin-left: 14px !important;
+    margin-right: 14px !important;
+  }
+  #screen-ending .end-stats { grid-template-columns: 1fr 1fr !important; }
+  #screen-ending .end-btns {
+    flex-direction: column !important;
+    justify-content: stretch !important;
+  }
+
+  #screen-credits .credit-card p,
+  #screen-credits .cred-sign,
+  #screen-credits > .credit-card > button {
+    margin-left: 14px !important;
+    margin-right: 14px !important;
+  }
+
+  #screen-finale.active .finale-split {
+    display: block;
+    margin: 12px 8px;
+  }
+  #screen-finale.active .finale-left { padding: 20px 16px; }
+  #screen-finale.active .finale-right { min-height: 220px; }
+  #screen-finale.active .finale-bottom { margin: 0 8px 16px !important; padding: 18px 16px !important; }
+  #screen-finale.active .finale-monologue { font-size: 14px !important; }
+}
