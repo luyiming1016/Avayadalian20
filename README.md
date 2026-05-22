@@ -4,10 +4,32 @@
 
 ## Version
 
-- Version: v1.1 responsive build
+- Version: v1.2 monthly story build
 - Date: 2026-05-22
 - Made by: Arthur
 - Copyright: Copyright © 2026 Arthur. All rights reserved.
+
+## Release Notes
+
+### v1.2 monthly story build - 2026-05-22
+
+- Expanded the full 2018-2026 timeline to at least one playable turn per month.
+- Added recurring union events every year:
+  - April: three-day, two-night employee outing
+  - May: Dalian Federation of Trade Unions dragon boat race
+  - October-November: 5 km union running activity
+- Updated outing destinations so early years use out-of-province trips, while later years shift to in-province trips due to budget pressure.
+- Updated the in-game top bar to show `YYYY-MM` and season by event month.
+
+### v1.1 responsive build - 2026-05-22
+
+- Added responsive layout support for desktop browsers and mobile screens.
+- Reworked mobile game flow into a vertical layout with status, scene, and story card sections.
+- Localized remote art references to assets stored in the repository.
+
+### v1.0 playable demo - 2026-05-21
+
+- Initial playable story demo with character creation, yearly progression, finale, epilogue, and multiple endings.
 
 ## Features
 
