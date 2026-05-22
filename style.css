@@ -781,7 +781,7 @@ input { font-family: inherit; }
     padding: 8px 12px;
     flex: 1 1 calc(50% - 8px);
   }
-  #opt-major .opt,
+  #opt-skill .opt,
   #opt-live .opt { flex-basis: 100%; }
   .trait-grid { grid-template-columns: 1fr; gap: 10px; }
   .trait-grid > div { padding: 12px; }
@@ -3092,4 +3092,99 @@ input { font-family: inherit; }
   #screen-create .avatar-preview img { width: 140px; height: 140px; }
   #screen-create .av-row { grid-template-columns: 44px 1fr; }
   #screen-game .pc-avatar { width: 44px; height: 44px; flex: 0 0 44px; }
+}
+
+/* ============================================================
+ * Skill 选择器 · 角色创建屏
+ * ============================================================ */
+#screen-create .lbl-hint {
+  margin-left: 8px;
+  font: 400 11px/1.4 Arial, "Microsoft YaHei", sans-serif;
+  color: #7b8694;
+  letter-spacing: 0;
+}
+#screen-create .skill-picker {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  background: #fafbfc;
+  border: 1px solid #d4d8de;
+  padding: 12px;
+  border-radius: 0;
+}
+#screen-create .skill-cats {
+  display: flex;
+  gap: 6px;
+  border-bottom: 1px solid #d4d8de;
+  padding-bottom: 10px;
+}
+#screen-create #opt-skill-cat .opt {
+  flex: 0 0 auto !important;
+  min-width: 130px;
+  font: 700 12px/1 Arial, "Microsoft YaHei", sans-serif !important;
+  letter-spacing: .04em;
+}
+#screen-create .skill-opts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+#screen-create #opt-skill .opt[hidden] { display: none !important; }
+#screen-create #opt-skill .opt {
+  font: 600 12px/1 Arial, "Microsoft YaHei", sans-serif !important;
+  padding: 6px 12px !important;
+  min-height: 0 !important;
+}
+
+/* ============================================================
+ * Skills · 玩家档案卡
+ * ============================================================ */
+#screen-game .pc-skills {
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px dashed #d8d8d8;
+}
+#screen-game .pc-skills-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: 6px;
+}
+#screen-game .pc-skills-lbl {
+  font: 700 11px/1 Arial, "Microsoft YaHei", sans-serif;
+  color: #4a5568;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+#screen-game .pc-skill-prog {
+  font: 400 10px/1 Arial, "Microsoft YaHei", sans-serif;
+  color: #7b8694;
+}
+#screen-game .pc-skills-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+#screen-game .pc-skill {
+  font: 600 11px/1 Arial, "Microsoft YaHei", sans-serif;
+  padding: 3px 7px;
+  background: #fff6cf;
+  border: 1px solid #f0d891;
+  color: #6b4a00;
+  border-radius: 0;
+}
+#screen-game .pc-skill-uc {
+  background: #e8f3f7;
+  border-color: #a9cfdc;
+  color: #2f7a8e;
+}
+#screen-game .pc-skill-cc {
+  background: #fde9ed;
+  border-color: #f0a8b5;
+  color: #a3001a;
+}
+#screen-game .pc-skill-empty {
+  background: #f0f0f0;
+  border-color: #d0d0d0;
+  color: #888;
 }

@@ -70,13 +70,27 @@
       </div>
     </div>
     <div class="form-row">
-      <label>主修专精</label>
-      <div class="opt-group" id="opt-major">
-        <button class="opt active" data-v="voice">Voice / Aura Core</button>
-        <button class="opt" data-v="sip">Session & Routing</button>
-        <button class="opt" data-v="cc">Contact Center</button>
-        <button class="opt" data-v="cloud">Cloud / AXP</button>
-        <button class="opt" data-v="endpoint">Endpoints & Devices</button>
+      <label>Skill <span class="lbl-hint">起始仅可选 1 项 · 随 SR 解决数量逐步解锁新技能</span></label>
+      <div class="skill-picker">
+        <div class="opt-group skill-cats" id="opt-skill-cat">
+          <button class="opt active" data-v="UC">UC · 统一通信</button>
+          <button class="opt" data-v="CC">CC · 联络中心</button>
+        </div>
+        <div class="opt-group skill-opts" id="opt-skill" data-cat="UC">
+          <button class="opt active" data-v="CM&MG" data-cat="UC">CM &amp; MG</button>
+          <button class="opt" data-v="SMGR&SM" data-cat="UC">SMGR &amp; SM</button>
+          <button class="opt" data-v="AADS&AAWG" data-cat="UC">AADS &amp; AAWG</button>
+          <button class="opt" data-v="Endpoint" data-cat="UC">Endpoint</button>
+          <button class="opt" data-v="CS1K" data-cat="UC">CS1K</button>
+          <button class="opt" data-v="SBC" data-cat="UC">SBC</button>
+          <button class="opt" data-v="Messaging" data-cat="UC">Messaging</button>
+          <button class="opt" data-v="AES" data-cat="CC" hidden>AES</button>
+          <button class="opt" data-v="WFO" data-cat="CC" hidden>WFO</button>
+          <button class="opt" data-v="ACR" data-cat="CC" hidden>ACR</button>
+          <button class="opt" data-v="CMS" data-cat="CC" hidden>CMS</button>
+          <button class="opt" data-v="ACCCM" data-cat="CC" hidden>ACCCM</button>
+          <button class="opt" data-v="Oceana" data-cat="CC" hidden>Oceana</button>
+        </div>
       </div>
     </div>
     <div class="form-row form-row-avatar">

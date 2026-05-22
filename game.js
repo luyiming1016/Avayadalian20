@@ -9,7 +9,10 @@ const SAVE_KEY = "avara_backbone_save_v1";
 const DEFAULT_STATE = () => ({
   player: {
     name:"李墨", enName:"Mo Li", gender:"M",
-    hometown:"dalian", edu:"normal", major:"voice",
+    hometown:"dalian", edu:"normal",
+    skillCategory:"UC",
+    skills:["CM&MG"],
+    skillProgress:0,
     extrovert:0, decisive:0, live:"share",
     tech:35, comm:40, stam:65, eq:40, en:50, res:40, hp:80, money:12, family:50,
     grade:"Contractor",
@@ -33,6 +36,50 @@ const DEFAULT_STATE = () => ({
 
 let S = DEFAULT_STATE();
 
+/* ---------- Skill 体系 ---------- */
+const SKILL_CATALOG = {
+  UC: ["CM&MG","SMGR&SM","AADS&AAWG","Endpoint","CS1K","SBC","Messaging"],
+  CC: ["AES","WFO","ACR","CMS","ACCCM","Oceana"]
+};
+// 每跨过一个阈值（累计 SR 成功得分）解锁一个新技能
+const SKILL_UNLOCK_THRESHOLDS = [3, 7, 12, 18, 25, 33, 42, 52, 63, 75, 88];
+
+function skillCategoryOf(skill){
+  if (SKILL_CATALOG.UC.indexOf(skill) >= 0) return "UC";
+  if (SKILL_CATALOG.CC.indexOf(skill) >= 0) return "CC";
+  return null;
+}
+function maybeUnlockSkill(scoreDelta){
+  if (!S || !S.player) return;
+  if (typeof scoreDelta !== "number" || scoreDelta <= 0) return;
+  const before = S.player.skillProgress || 0;
+  const after = before + scoreDelta;
+  S.player.skillProgress = after;
+  if (!Array.isArray(S.player.skills)) S.player.skills = [];
+
+  let unlocked = [];
+  SKILL_UNLOCK_THRESHOLDS.forEach(t => {
+    if (before < t && after >= t){
+      const owned = new Set(S.player.skills);
+      // 优先解锁起手类别里没拿过的，其次再跨到另一类
+      const primary = S.player.skillCategory === "CC" ? "CC" : "UC";
+      const secondary = primary === "UC" ? "CC" : "UC";
+      const candidates = SKILL_CATALOG[primary].filter(s => !owned.has(s));
+      const fallback   = SKILL_CATALOG[secondary].filter(s => !owned.has(s));
+      const pool = candidates.length ? candidates : fallback;
+      if (!pool.length) return;
+      const pick = pool[Math.floor(Math.random() * pool.length)];
+      S.player.skills.push(pick);
+      unlocked.push(pick);
+    }
+  });
+  if (unlocked.length){
+    S.log.push(`🆕 解锁新技能：${unlocked.join("，")}`);
+    toast(`🎓 新技能解锁：${unlocked.join("、")}`, 3200);
+    if (document.getElementById("player-card")) renderPlayerCard();
+  }
+}
+
 /* ---------- 屏幕切换 ---------- */
 function goto(id){
   document.querySelectorAll(".screen").forEach(el => el.classList.remove("active"));
@@ -49,9 +96,28 @@ document.querySelectorAll(".opt-group").forEach(g => {
     e.target.classList.add("active");
     if (g.id && g.id.indexOf("av-") === 0) updateAvatarPreview();
     else if (g.id === "opt-gender") syncAvatarToGender(e.target.dataset.v);
+    else if (g.id === "opt-skill-cat") filterSkillsByCategory(e.target.dataset.v);
   });
 });
 
+function filterSkillsByCategory(cat){
+  const wrap = document.getElementById("opt-skill");
+  if (!wrap) return;
+  wrap.dataset.cat = cat;
+  const opts = wrap.querySelectorAll(".opt");
+  let firstVisible = null;
+  opts.forEach(b => {
+    const match = b.dataset.cat === cat;
+    b.hidden = !match;
+    if (match && !firstVisible) firstVisible = b;
+  });
+  // 起手只能选一个；切类时如果之前选的属于另一类，就选中本类第一项
+  const active = wrap.querySelector(".opt.active:not([hidden])");
+  if (!active && firstVisible){
+    opts.forEach(b => b.classList.remove("active"));
+    firstVisible.classList.add("active");
+  }
+}
 /* ---------- 头像自定（DiceBear avataaars） ---------- */
 const AVATAR_BASE = "https://api.dicebear.com/9.x/avataaars/svg";
 const AV_GROUP_IDS = [
@@ -205,7 +271,10 @@ function confirmCreate(){
   S.player.gender = getActive("opt-gender") || "M";
   S.player.hometown = getActive("opt-hometown") || "dalian";
   S.player.edu = getActive("opt-edu") || "normal";
-  S.player.major = getActive("opt-major") || "voice";
+  S.player.skillCategory = getActive("opt-skill-cat") || "UC";
+  const startingSkill = getActive("opt-skill") || (SKILL_CATALOG[S.player.skillCategory] || SKILL_CATALOG.UC)[0];
+  S.player.skills = [startingSkill];
+  S.player.skillProgress = 0;
   S.player.live = getActive("opt-live") || "share";
   S.player.extrovert = parseInt(get("char-ext","0"));
   S.player.decisive = parseInt(get("char-dec","0"));
@@ -266,13 +335,6 @@ function renderPlayerCard(){
 
   const genderMap   = { M:"男", F:"女", N:"不愿透露" };
   const eduMap      = { "985":"985 / 211 本科", normal:"普通本科", haigui:"海归硕士" };
-  const majorMap    = {
-    voice:"Voice / Aura Core",
-    sip:"Session & Routing",
-    cc:"Contact Center",
-    cloud:"Cloud / AXP",
-    endpoint:"Endpoints & Devices"
-  };
   const hometownMap = { dalian:"大连本地", northeast:"东北其他", south:"关内" };
   const liveMap     = { share:"与同事合租", solo:"独居小公寓", relative:"借住亲戚家" };
   const spouseTypeMap = {
@@ -296,6 +358,22 @@ function renderPlayerCard(){
     ? `<img class="pc-avatar-img" alt="avatar" src="${buildAvatarUrl(p.avatar)}">`
     : emoji;
 
+  const skills = Array.isArray(p.skills) ? p.skills : [];
+  const skillChips = skills.length
+    ? skills.map(s => {
+        const cat = skillCategoryOf(s);
+        const cls = cat === "CC" ? "pc-skill pc-skill-cc"
+                  : cat === "UC" ? "pc-skill pc-skill-uc"
+                  : "pc-skill";
+        return `<span class="${cls}">${_slEscape(s)}</span>`;
+      }).join("")
+    : `<span class="pc-skill pc-skill-empty">—</span>`;
+  const skillProg = p.skillProgress || 0;
+  const nextThresh = SKILL_UNLOCK_THRESHOLDS.find(t => t > skillProg);
+  const skillHint = nextThresh
+    ? `<span class="pc-skill-prog">SR ${skillProg} / ${nextThresh}</span>`
+    : `<span class="pc-skill-prog">已满级</span>`;
+
   el.innerHTML = `
     <div class="pc-head">Engineer Profile</div>
     <div class="pc-body">
@@ -308,12 +386,18 @@ function renderPlayerCard(){
       </div>
       <dl class="pc-fields">
         <dt>性别</dt><dd>${genderMap[p.gender] || "—"}</dd>
-        <dt>主修</dt><dd>${majorMap[p.major] || "—"}</dd>
         <dt>学历</dt><dd>${eduMap[p.edu] || "—"}</dd>
         <dt>籍贯</dt><dd>${hometownMap[p.hometown] || "—"}</dd>
         <dt>居住</dt><dd>${liveMap[p.live] || "—"}</dd>
         <dt>感情</dt><dd class="${relClass}">${relText}</dd>
       </dl>
+      <div class="pc-skills">
+        <div class="pc-skills-head">
+          <span class="pc-skills-lbl">Skills · ${_slEscape(p.skillCategory || "UC")}</span>
+          ${skillHint}
+        </div>
+        <div class="pc-skills-list">${skillChips}</div>
+      </div>
     </div>
   `;
 }
@@ -458,6 +542,7 @@ function recordCaseResult(ev, score){
   row.count += 1;
   S.case.monthly[key] = row;
   S.player.caseScore = (S.player.caseScore || 0) + score;
+  if (score > 0) maybeUnlockSkill(score);
 
   if (row.count >= 3){
     if (row.score < 2) S.case.lowStreak = (S.case.lowStreak || 0) + 1;
