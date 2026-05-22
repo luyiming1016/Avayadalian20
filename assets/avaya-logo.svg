@@ -1,8 +1,5 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="220" height="58" viewBox="0 0 220 58" role="img" aria-label="AVAYA">
-  <filter id="soft-edge" x="-5%" y="-10%" width="110%" height="120%">
-    <feGaussianBlur in="SourceGraphic" stdDeviation=".35"/>
-  </filter>
-  <g fill="#d71920" filter="url(#soft-edge)" transform="translate(3 48) scale(1.08 1)">
+  <g fill="#d71920" transform="translate(3 48) scale(1.08 1)">
     <text font-family="Arial Black, Arial, Helvetica, sans-serif" font-size="49" font-weight="900" letter-spacing="-4">AVAYA</text>
   </g>
 </svg>
