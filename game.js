@@ -406,7 +406,16 @@ function renderSidebar(){
   renderPlayerCard();
   document.getElementById("ui-site").textContent = S.site.headcount;
   document.getElementById("ui-legend").textContent = S.player.legend;
-  document.getElementById("ui-father").textContent = (S.player.father == null ? "—" : S.player.father);
+  const fatherBadge = document.getElementById("ui-family-badge");
+  const fatherVal = S.player.father;
+  if (fatherBadge){
+    if (fatherVal == null || fatherVal === 0){
+      fatherBadge.hidden = true;
+    } else {
+      fatherBadge.hidden = false;
+      document.getElementById("ui-father").textContent = fatherVal;
+    }
+  }
 
   const updRel = (id, label, val, max=100, who=null) => {
     const el = document.getElementById(id);
@@ -815,7 +824,7 @@ function renderEnding(key){
   stats.innerHTML = `
     <div>传奇分<b>${p.legend}</b></div>
     <div>Case 分<b>${p.caseScore || 0}</b></div>
-    <div>父亲分<b>${p.father==null?"—":p.father}</b></div>
+    ${(p.father == null || p.father === 0) ? "" : `<div>家庭分<b>${p.father}</b></div>`}
     <div>婚姻分<b>${S.rel.spouse}</b></div>
   `;
 

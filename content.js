@@ -479,11 +479,11 @@ const CONTENT = {
             {type:"narr", text:"晚上 22:47，TA 把验孕棒放在洗手台沿上。两条线。当晚你手上压着一个 SBI，客户在催。"}
           ],
           choices:[
-            {label:"立刻关掉电脑，陪 TA 看到天亮", tag:"legend", sub:"父亲身份分起手 ++ · 父亲分激活",
+            {label:"立刻关掉电脑，陪 TA 看到天亮", tag:"legend", sub:"家庭身份分起手 ++ · 家庭分激活",
               effects:{spouse:25, family:10, father:15, log:"怀孕确认夜 · 关电脑陪到天亮"}},
             {label:"先把 SBI 推一版给印度，1 小时后回", tag:"EQ", sub:"中性",
               effects:{spouse:8, father:8, log:"怀孕确认夜 · 推完 SBI 才回"}},
-            {label:"先把 SBI 关掉，再回家", tag:"danger", sub:"父亲分起手低",
+            {label:"先把 SBI 关掉，再回家", tag:"danger", sub:"家庭分起手低",
               effects:{spouse:-5, david:3, father:3, log:"怀孕确认夜 · 先关 SBI"}}
           ]
         },
@@ -537,7 +537,7 @@ const CONTENT = {
             {type:"narr", text:"周六下午，TA 抓住你的手按在肚子上。第一下胎动，像是水面下面有人轻轻敲了一下杯子。"}
           ],
           choices:[
-            {label:"当场决定推掉所有夜间团建一年", tag:"legend", sub:"父亲分 ++ · 老兵口碑 -",
+            {label:"当场决定推掉所有夜间团建一年", tag:"legend", sub:"家庭分 ++ · 老兵口碑 -",
               effects:{family:10, father:15, david:-3, flag:{set:"father_awakened"}, log:"胎动 · 父亲觉醒 · 推掉夜间团建"}},
             {label:"录视频发给爸妈", tag:"EQ", sub:"中性 +",
               effects:{family:8, father:8, log:"胎动 · 录视频发爸妈"}}
@@ -678,11 +678,11 @@ const CONTENT = {
           {type:"dialog", who:"TA（电话那头声音发抖）", text:"羊水破了，我已经在去医院的路上。爸妈赶过去要 1 小时——你来得了吗？"}
         ],
         choices:[
-          {label:"立刻打车去医院", tag:"legend", sub:"姿态分 + 父亲分 ++",
+          {label:"立刻打车去医院", tag:"legend", sub:"姿态分 + 家庭分 ++",
             effects:{father:15, spouse:10, flag:{set:"go_hospital_first"}, log:"10:47 · 立刻打车去医院"}},
           {label:"先把手上 SBI 推一版交给小赵", tag:"EQ", sub:"中性",
             effects:{father:5, flag:{set:"handoff_first"}, log:"10:47 · 先交接 SBI"}},
-          {label:"先回那封 HR 会议确认邮件", tag:"danger", sub:"父亲分 -",
+          {label:"先回那封 HR 会议确认邮件", tag:"danger", sub:"家庭分 -",
             effects:{father:-3, frank:2, flag:{set:"hr_first"}, log:"10:47 · 先回 HR 邮件"}}
         ]
       },
@@ -697,7 +697,7 @@ const CONTENT = {
         choices:[
           {label:"会议室准时进 · 哪怕你已经在医院走廊", tag:"legend", sub:"体面分 +、姿态稳",
             effects:{legend:3, res:3, flag:{set:"attend_hr"}, log:"11:12 · 决定 15:00 准时进会议"}},
-          {label:"提前发邮件请假——我去陪产", tag:"cruce", sub:"父亲分 ++ 但 HR 流程延后",
+          {label:"提前发邮件请假——我去陪产", tag:"cruce", sub:"家庭分 ++ 但 HR 流程延后",
             effects:{father:10, frank:-5, flag:{set:"skip_hr"}, log:"11:12 · 发邮件请假陪产"}}
         ]
       },
