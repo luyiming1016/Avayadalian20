@@ -124,6 +124,8 @@ function renderTopBar(){
     : month >= 9 && month <= 11 ? "🍂 秋"
     : "❄ 冬";
   document.getElementById("ui-grade").textContent = S.player.grade;
+  const uiP = document.getElementById("ui-player");
+  if (uiP) uiP.textContent = `👤 ${S.player.name}${S.player.enName ? " · " + S.player.enName : ""}`;
 
   const p = S.player;
   const set = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = v; };
@@ -134,7 +136,64 @@ function renderTopBar(){
 }
 
 /* ---------- 左侧栏 ---------- */
+function renderPlayerCard(){
+  const el = document.getElementById("player-card");
+  if (!el || !S || !S.player) return;
+  const p = S.player;
+
+  const genderMap   = { M:"男", F:"女", N:"不愿透露" };
+  const eduMap      = { "985":"985 / 211 本科", normal:"普通本科", haigui:"海归硕士" };
+  const majorMap    = {
+    voice:"Voice / Aura Core",
+    sip:"Session & Routing",
+    cc:"Contact Center",
+    cloud:"Cloud / AXP",
+    endpoint:"Endpoints & Devices"
+  };
+  const hometownMap = { dalian:"大连本地", northeast:"东北其他", south:"关内" };
+  const liveMap     = { share:"与同事合租", solo:"独居小公寓", relative:"借住亲戚家" };
+  const spouseTypeMap = {
+    wife:"已婚", husband:"已婚", spouse:"已婚",
+    girlfriend:"恋爱中", boyfriend:"恋爱中", partner:"恋爱中",
+    fiancee:"已订婚", fiance:"已订婚"
+  };
+
+  let relText, relClass;
+  if (p.spouseName){
+    const label = spouseTypeMap[p.spouseType] || "已婚";
+    relText = `${label} · ${_slEscape(p.spouseName)} ★`;
+    relClass = "pc-rel pc-rel-on";
+  } else {
+    relText = "单身";
+    relClass = "pc-rel pc-rel-off";
+  }
+
+  const avatar = p.gender === "F" ? "👩" : p.gender === "N" ? "🧑" : "👨";
+
+  el.innerHTML = `
+    <div class="pc-head">Engineer Profile</div>
+    <div class="pc-body">
+      <div class="pc-top">
+        <div class="pc-avatar">${avatar}</div>
+        <div class="pc-id">
+          <div class="pc-name">${_slEscape(p.name)}<span class="pc-en">${_slEscape(p.enName || "")}</span></div>
+          <div class="pc-grade"><span class="pc-grade-lbl">职级</span><b>${_slEscape(p.grade || "—")}</b></div>
+        </div>
+      </div>
+      <dl class="pc-fields">
+        <dt>性别</dt><dd>${genderMap[p.gender] || "—"}</dd>
+        <dt>主修</dt><dd>${majorMap[p.major] || "—"}</dd>
+        <dt>学历</dt><dd>${eduMap[p.edu] || "—"}</dd>
+        <dt>籍贯</dt><dd>${hometownMap[p.hometown] || "—"}</dd>
+        <dt>居住</dt><dd>${liveMap[p.live] || "—"}</dd>
+        <dt>感情</dt><dd class="${relClass}">${relText}</dd>
+      </dl>
+    </div>
+  `;
+}
+
 function renderSidebar(){
+  renderPlayerCard();
   document.getElementById("ui-site").textContent = S.site.headcount;
   document.getElementById("ui-legend").textContent = S.player.legend;
   document.getElementById("ui-father").textContent = (S.player.father == null ? "—" : S.player.father);
