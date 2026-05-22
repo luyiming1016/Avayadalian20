@@ -2961,3 +2961,123 @@ input { font-family: inherit; }
   .slot-actions .btn-primary,
   .slot-actions .btn-ghost { flex: 1 1 auto; }
 }
+
+/* ============================================================
+ * 头像自定 · 角色创建屏
+ * ============================================================ */
+#screen-create .form-row-avatar { align-items: flex-start; }
+#screen-create .avatar-grid {
+  display: grid;
+  grid-template-columns: 180px 1fr;
+  gap: 16px;
+  align-items: start;
+  background: #fafbfc;
+  border: 1px solid #d4d8de;
+  padding: 14px;
+  border-radius: 0;
+}
+#screen-create .avatar-preview {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  background: #ffffff;
+  border: 1px solid #d4d8de;
+  padding: 10px;
+}
+#screen-create .avatar-preview img {
+  width: 150px;
+  height: 150px;
+  display: block;
+  background:
+    linear-gradient(135deg, #f4f6f8 25%, transparent 25%) 0 0/16px 16px,
+    linear-gradient(225deg, #f4f6f8 25%, transparent 25%) 0 0/16px 16px,
+    #ffffff;
+  border: 1px solid #e4e7ec;
+}
+#screen-create .btn-randomize {
+  font: 700 12px/1 Arial, "Microsoft YaHei", sans-serif;
+  letter-spacing: .03em;
+  padding: 7px 10px;
+  width: 100%;
+  text-align: center;
+}
+#screen-create .avatar-controls {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-width: 0;
+}
+#screen-create .av-row {
+  display: grid;
+  grid-template-columns: 48px 1fr;
+  gap: 10px;
+  align-items: center;
+}
+#screen-create .av-lbl {
+  font: 700 12px/1 Arial, "Microsoft YaHei", sans-serif;
+  color: #4a5568;
+  letter-spacing: .05em;
+}
+#screen-create .av-opts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+#screen-create .av-opts .opt {
+  font: 600 12px/1 Arial, "Microsoft YaHei", sans-serif;
+  padding: 6px 10px;
+  background: #ffffff;
+  border: 1px solid #c4cad3;
+  color: #2d3748;
+  border-radius: 0;
+  cursor: pointer;
+  transition: background .12s, border-color .12s, color .12s;
+}
+#screen-create .av-opts .opt:hover { background: #eef3f7; border-color: #8aa0b0; }
+#screen-create .av-opts .opt.active {
+  background: #4a9bb1;
+  border-color: #2f7a8e;
+  color: #fff;
+}
+#screen-create .av-swatches { gap: 8px; }
+#screen-create .av-swatches .swatch {
+  width: 26px;
+  height: 26px;
+  padding: 0;
+  background: var(--c, #ccc);
+  border: 2px solid #c4cad3;
+  border-radius: 50%;
+  cursor: pointer;
+  position: relative;
+}
+#screen-create .av-swatches .swatch:hover { border-color: #4a9bb1; }
+#screen-create .av-swatches .swatch.active {
+  border-color: #d90000;
+  box-shadow: 0 0 0 2px #fff, 0 0 0 3px #d90000;
+}
+
+#screen-game .pc-avatar-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  background: #fff6cf;
+}
+#screen-game .pc-avatar {
+  overflow: hidden;
+  padding: 0;
+  width: 48px;
+  height: 48px;
+  flex: 0 0 48px;
+}
+
+@media (max-width: 760px) {
+  #screen-create .avatar-grid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+  #screen-create .avatar-preview img { width: 140px; height: 140px; }
+  #screen-create .av-row { grid-template-columns: 44px 1fr; }
+  #screen-game .pc-avatar { width: 44px; height: 44px; flex: 0 0 44px; }
+}

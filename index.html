@@ -79,6 +79,76 @@
         <button class="opt" data-v="endpoint">Endpoints & Devices</button>
       </div>
     </div>
+    <div class="form-row form-row-avatar">
+      <label>外观自定 · 头像</label>
+      <div class="avatar-grid">
+        <div class="avatar-preview">
+          <img id="avatar-img" alt="avatar"
+               src="https://api.dicebear.com/9.x/avataaars/svg?seed=Mo+Li">
+          <button type="button" class="btn-ghost btn-randomize" onclick="randomizeAvatar()">🎲 随机生成</button>
+        </div>
+        <div class="avatar-controls">
+          <div class="av-row">
+            <span class="av-lbl">肤色</span>
+            <div class="opt-group av-opts av-swatches" id="av-skin">
+              <button type="button" class="opt swatch" data-v="ffdbb4" title="极浅" style="--c:#ffdbb4"></button>
+              <button type="button" class="opt swatch active" data-v="edb98a" title="浅" style="--c:#edb98a"></button>
+              <button type="button" class="opt swatch" data-v="d08b5b" title="中" style="--c:#d08b5b"></button>
+              <button type="button" class="opt swatch" data-v="ae5d29" title="深" style="--c:#ae5d29"></button>
+              <button type="button" class="opt swatch" data-v="614335" title="极深" style="--c:#614335"></button>
+            </div>
+          </div>
+          <div class="av-row">
+            <span class="av-lbl">发型</span>
+            <div class="opt-group av-opts" id="av-top">
+              <button type="button" class="opt active" data-v="shortFlat">短直</button>
+              <button type="button" class="opt" data-v="shortWaved">短卷</button>
+              <button type="button" class="opt" data-v="shortCurly">短卷曲</button>
+              <button type="button" class="opt" data-v="bigHair">大波浪</button>
+              <button type="button" class="opt" data-v="bob">波波头</button>
+              <button type="button" class="opt" data-v="longStraight">长直</button>
+              <button type="button" class="opt" data-v="longButNotTooLong">中长</button>
+              <button type="button" class="opt" data-v="curvy">蓬松</button>
+              <button type="button" class="opt" data-v="hat">帽子</button>
+              <button type="button" class="opt" data-v="noHair">光头</button>
+            </div>
+          </div>
+          <div class="av-row">
+            <span class="av-lbl">配饰</span>
+            <div class="opt-group av-opts" id="av-acc">
+              <button type="button" class="opt active" data-v="none">无</button>
+              <button type="button" class="opt" data-v="round">圆框眼镜</button>
+              <button type="button" class="opt" data-v="prescription01">方框眼镜</button>
+              <button type="button" class="opt" data-v="prescription02">细框眼镜</button>
+              <button type="button" class="opt" data-v="sunglasses">墨镜</button>
+              <button type="button" class="opt" data-v="wayfarers">复古眼镜</button>
+            </div>
+          </div>
+          <div class="av-row">
+            <span class="av-lbl">表情</span>
+            <div class="opt-group av-opts" id="av-mouth">
+              <button type="button" class="opt active" data-v="default">平静</button>
+              <button type="button" class="opt" data-v="smile">微笑</button>
+              <button type="button" class="opt" data-v="twinkle">含笑</button>
+              <button type="button" class="opt" data-v="serious">严肃</button>
+              <button type="button" class="opt" data-v="tongue">吐舌</button>
+            </div>
+          </div>
+          <div class="av-row">
+            <span class="av-lbl">服装</span>
+            <div class="opt-group av-opts" id="av-cloth">
+              <button type="button" class="opt active" data-v="blazerAndShirt">西装衬衫</button>
+              <button type="button" class="opt" data-v="blazerAndSweater">西装毛衣</button>
+              <button type="button" class="opt" data-v="hoodie">连帽衫</button>
+              <button type="button" class="opt" data-v="shirtVNeck">V 领</button>
+              <button type="button" class="opt" data-v="shirtCrewNeck">圆领</button>
+              <button type="button" class="opt" data-v="overall">工装</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <div class="form-row">
       <label>性格倾向</label>
       <div class="trait-grid">

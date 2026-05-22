@@ -15,6 +15,7 @@ const DEFAULT_STATE = () => ({
     grade:"Contractor",
     legend:0, father:null, caseScore:0,
     spouseName:null, spouseType:null,
+    avatar:null,
     flags:{}
   },
   rel:{ cruce:60, david:50, laok:55, frank:0, eric:40, spouse:0 },
@@ -46,7 +47,84 @@ document.querySelectorAll(".opt-group").forEach(g => {
     if (!e.target.classList.contains("opt")) return;
     g.querySelectorAll(".opt").forEach(b => b.classList.remove("active"));
     e.target.classList.add("active");
+    if (g.id && g.id.indexOf("av-") === 0) updateAvatarPreview();
+    if (g.id === "opt-gender") updateAvatarPreview();
   });
+});
+
+/* ---------- 头像自定（DiceBear avataaars） ---------- */
+const AVATAR_BASE = "https://api.dicebear.com/9.x/avataaars/svg";
+const AV_HAIR_COLORS = ["2c1b18","4a312c","724133","a55728","b58143","c93305","d6b370","e8e1e1"];
+const AV_CLOTH_COLORS = ["3c4f5c","262e33","65c9ff","5199e4","25557c","929598","a7ffc4","b1e2ff","ff488e","ff5c5c","ffafb9","ffdeb5","ffffb1","ffffff"];
+function buildAvatarUrl(opts){
+  const o = opts || getCurrentAvatarOpts();
+  if (!o) return AVATAR_BASE + "?seed=Mo+Li";
+  const p = new URLSearchParams();
+  p.set("seed", o.seed || "Mo Li");
+  if (o.skin)  p.set("skinColor", o.skin);
+  if (o.top)   p.set("top", o.top);
+  if (o.mouth) p.set("mouth", o.mouth);
+  if (o.cloth) p.set("clothing", o.cloth);
+  if (o.hairColor) p.set("hairColor", o.hairColor);
+  if (o.clothColor) p.set("clothesColor", o.clothColor);
+  if (o.acc && o.acc !== "none"){
+    p.set("accessories", o.acc);
+    p.set("accessoriesProbability", "100");
+  } else {
+    p.set("accessoriesProbability", "0");
+  }
+  return AVATAR_BASE + "?" + p.toString();
+}
+function _getActiveOpt(groupId, fallback){
+  const g = document.getElementById(groupId);
+  if (!g) return fallback;
+  const a = g.querySelector(".opt.active");
+  return a ? a.dataset.v : fallback;
+}
+function getCurrentAvatarOpts(){
+  const seedEl = document.getElementById("avatar-img");
+  const seedAttr = seedEl && seedEl.dataset ? seedEl.dataset.seed : null;
+  const nameEl = document.getElementById("char-en");
+  const seed = seedAttr || (nameEl && nameEl.value) || "Mo Li";
+  return {
+    seed: seed,
+    skin:  _getActiveOpt("av-skin",  "edb98a"),
+    top:   _getActiveOpt("av-top",   "shortFlat"),
+    acc:   _getActiveOpt("av-acc",   "none"),
+    mouth: _getActiveOpt("av-mouth", "default"),
+    cloth: _getActiveOpt("av-cloth", "blazerAndShirt"),
+    hairColor: window._avHairColor || "2c1b18",
+    clothColor: window._avClothColor || "262e33"
+  };
+}
+function updateAvatarPreview(){
+  const img = document.getElementById("avatar-img");
+  if (!img) return;
+  const opts = getCurrentAvatarOpts();
+  img.dataset.seed = opts.seed;
+  img.src = buildAvatarUrl(opts);
+}
+function randomizeAvatar(){
+  const pickRand = (groupId) => {
+    const g = document.getElementById(groupId);
+    if (!g) return;
+    const opts = g.querySelectorAll(".opt");
+    if (!opts.length) return;
+    const pick = opts[Math.floor(Math.random() * opts.length)];
+    g.querySelectorAll(".opt").forEach(b => b.classList.remove("active"));
+    pick.classList.add("active");
+  };
+  ["av-skin","av-top","av-acc","av-mouth","av-cloth"].forEach(pickRand);
+  window._avHairColor  = AV_HAIR_COLORS[Math.floor(Math.random()*AV_HAIR_COLORS.length)];
+  window._avClothColor = AV_CLOTH_COLORS[Math.floor(Math.random()*AV_CLOTH_COLORS.length)];
+  const img = document.getElementById("avatar-img");
+  if (img) img.dataset.seed = "S-" + Math.random().toString(36).slice(2, 10);
+  updateAvatarPreview();
+}
+document.addEventListener("DOMContentLoaded", () => {
+  const nameEn = document.getElementById("char-en");
+  if (nameEn) nameEn.addEventListener("input", updateAvatarPreview);
+  updateAvatarPreview();
 });
 const extInput = document.getElementById("char-ext");
 const decInput = document.getElementById("char-dec");
@@ -88,6 +166,7 @@ function confirmCreate(){
   S.player.live = getActive("opt-live") || "share";
   S.player.extrovert = parseInt(get("char-ext","0"));
   S.player.decisive = parseInt(get("char-dec","0"));
+  S.player.avatar = getCurrentAvatarOpts();
 
   // 学历微调起手属性
   if (S.player.edu === "985") { S.player.en += 8; S.player.money += 3; }
@@ -169,13 +248,16 @@ function renderPlayerCard(){
     relClass = "pc-rel pc-rel-off";
   }
 
-  const avatar = p.gender === "F" ? "👩" : p.gender === "N" ? "🧑" : "👨";
+  const emoji = p.gender === "F" ? "👩" : p.gender === "N" ? "🧑" : "👨";
+  const avatarMarkup = p.avatar
+    ? `<img class="pc-avatar-img" alt="avatar" src="${buildAvatarUrl(p.avatar)}">`
+    : emoji;
 
   el.innerHTML = `
     <div class="pc-head">Engineer Profile</div>
     <div class="pc-body">
       <div class="pc-top">
-        <div class="pc-avatar">${avatar}</div>
+        <div class="pc-avatar">${avatarMarkup}</div>
         <div class="pc-id">
           <div class="pc-name">${_slEscape(p.name)}<span class="pc-en">${_slEscape(p.enName || "")}</span></div>
           <div class="pc-grade"><span class="pc-grade-lbl">职级</span><b>${_slEscape(p.grade || "—")}</b></div>
