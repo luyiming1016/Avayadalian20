@@ -121,6 +121,20 @@ input { font-family: inherit; }
 }
 .title-sub { color: var(--text); font-size: 15px; margin-bottom: 48px; line-height: 2; max-width: 600px; }
 .title-btns { display: flex; gap: 16px; margin-bottom: 80px; }
+.title-meta {
+  position: absolute;
+  left: 24px;
+  right: 24px;
+  bottom: 48px;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px 18px;
+  color: var(--text-mute);
+  font-family: "Segoe UI", system-ui, sans-serif;
+  font-size: 11px;
+  letter-spacing: 1px;
+}
 .title-foot { color: var(--text-dim); font-size: 11px; position: absolute; bottom: 24px; }
 
 /* ============= 角色创建 ============= */
@@ -699,6 +713,16 @@ input { font-family: inherit; }
     bottom: 18px;
     line-height: 1.6;
   }
+  .title-meta {
+    position: static;
+    display: grid;
+    gap: 4px;
+    margin-top: 4px;
+    font-size: 10px;
+    letter-spacing: 0;
+    line-height: 1.5;
+  }
+  .title-foot { position: static; margin-top: 18px; }
 
   .create-bg::before { font-size: 260px; right: -30px; bottom: -30px; }
   .create-panel {
