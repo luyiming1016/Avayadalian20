@@ -44,7 +44,3 @@ http://127.0.0.1:5173/index.html
 ├── assets/
 └── Avaya_Dalian_20Years_Backbone_Legend_RDF.md
 ```
-
-## Notes
-
-公司名、产品名、客户名均为艺术化处理；如与真实姓名或事件雷同，仅作戏剧加工。
