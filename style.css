@@ -106,18 +106,15 @@ input { font-family: inherit; }
   max-width: 100%;
 }
 .avaya-logo {
-  font-family: "Arial Black", "Arial Narrow", Arial, Helvetica, sans-serif;
-  font-weight: 900;
-  font-style: normal;
-  color: #d71920;
-  -webkit-text-fill-color: #d71920;
-  background: none;
-  letter-spacing: -2px;
-  margin-right: 14px;
-  text-shadow: none;
-  transform: scaleX(1.08);
-  transform-origin: left center;
   display: inline-block;
+  vertical-align: middle;
+  width: 1.9em;
+  height: 0.5em;
+  margin-right: 0.18em;
+  background: url("assets/avaya-logo.svg") left center / contain no-repeat;
+  text-indent: -9999px;
+  overflow: hidden;
+  color: transparent;
 }
 .title-content h2 {
   font-size: 38px; font-weight: 300; letter-spacing: 12px;
@@ -723,9 +720,9 @@ input { font-family: inherit; }
   }
   .avaya-logo {
     display: block;
-    margin: 0 auto 4px;
-    letter-spacing: -1px;
-    transform-origin: center;
+    width: 2.4em;
+    height: 0.62em;
+    margin: 0 auto 6px;
   }
   .title-content h2 {
     font-size: 25px;

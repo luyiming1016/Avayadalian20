@@ -1,5 +1,9 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="220" height="58" viewBox="0 0 220 58" role="img" aria-label="AVAYA">
-  <g fill="#d71920" transform="translate(3 48) scale(1.08 1)">
-    <text font-family="Arial Black, Arial, Helvetica, sans-serif" font-size="49" font-weight="900" letter-spacing="-4">AVAYA</text>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 84" role="img" aria-label="AVAYA">
+  <g fill="#D6293E" fill-rule="evenodd">
+    <path d="M0,80 L22,4 L36,4 L58,80 L43,80 L39,64 L19,64 L15,80 Z M22,52 L36,52 L29,24 Z"/>
+    <path d="M60,4 L76,4 L91,60 L106,4 L122,4 L100,80 L82,80 Z"/>
+    <path d="M124,80 L146,4 L160,4 L182,80 L167,80 L163,64 L143,64 L139,80 Z M146,52 L160,52 L153,24 Z"/>
+    <path d="M184,4 L200,4 L211,30 L222,4 L238,4 L218,46 L218,80 L204,80 L204,46 Z"/>
+    <path d="M240,80 L262,4 L276,4 L298,80 L283,80 L279,64 L259,64 L255,80 Z M262,52 L276,52 L269,24 Z"/>
   </g>
 </svg>
