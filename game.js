@@ -13,7 +13,7 @@ const DEFAULT_STATE = () => ({
     extrovert:0, decisive:0, live:"share",
     tech:35, comm:40, stam:65, eq:40, en:50, res:40, hp:80, money:12, family:50,
     grade:"Contractor",
-    legend:0, father:null,
+    legend:0, father:null, caseScore:0,
     spouseName:null, spouseType:null,
     flags:{}
   },
@@ -22,6 +22,8 @@ const DEFAULT_STATE = () => ({
   yearIdx:0, eventIdx:0,
   finaleIdx:0,
   epiIdx:0,
+  caseSeed:0,
+  case:{ monthly:{}, lowStreak:0 },
   log:[],
   ending:null,
   // 多周目可用
@@ -94,11 +96,14 @@ function confirmCreate(){
   if (S.player.live === "solo") { S.player.money -= 3; S.player.stam += 5; }
   else if (S.player.live === "relative") { S.player.money += 3; S.player.eq -= 2; }
 
+  S.caseSeed = Date.now() % 1000000;
+  if (CONTENT.injectMonthlyCases) CONTENT.injectMonthlyCases(S.caseSeed);
   startGame();
 }
 
 /* ---------- 开始游戏（推进到第一年第一事件） ---------- */
 function startGame(){
+  if (CONTENT.injectMonthlyCases) CONTENT.injectMonthlyCases(S.caseSeed || 1);
   S.yearIdx = 0; S.eventIdx = 0;
   S.site.headcount = CONTENT.years[0].siteHeadcount;
   goto("screen-game");
@@ -125,6 +130,7 @@ function renderTopBar(){
   set("ui-tech", p.tech); set("ui-comm", p.comm); set("ui-stam", clamp(p.stam,0,100));
   set("ui-eq", p.eq); set("ui-en", p.en); set("ui-res", p.res);
   set("ui-hp", clamp(p.hp,0,100)); set("ui-money", Math.round(p.money));
+  set("ui-case", p.caseScore || 0);
 }
 
 /* ---------- 左侧栏 ---------- */
@@ -180,6 +186,17 @@ function renderBody(body){
   }).join("");
 }
 
+function renderCaseTitle(ev){
+  const severity = (ev.severity || "NBI").toLowerCase();
+  return `
+    <span class="case-title-line">
+      <span class="case-severity severity-${severity}">${ev.severity || "NBI"}</span>
+      <span class="case-number">${ev.caseNo || ev.caseId || "1-UNKNOWN"}</span>
+    </span>
+    <span class="case-title-name">${ev.product || "OCD Case"} · ${ev.title}</span>
+  `;
+}
+
 /* ---------- 渲染当前事件 ---------- */
 function renderEvent(){
   const year = CONTENT.years[S.yearIdx];
@@ -187,7 +204,9 @@ function renderEvent(){
   const ev = year.events[S.eventIdx];
   if (!ev) return endOfYear();
 
-  document.getElementById("event-title").textContent = ev.title;
+  const titleEl = document.getElementById("event-title");
+  if (ev.isCase) titleEl.innerHTML = renderCaseTitle(ev);
+  else titleEl.textContent = ev.title;
   document.getElementById("event-meta").textContent =
     `${year.year}${ev.month ? `-${String(ev.month).padStart(2, "0")}` : ""} · 第${[ "一","二","三","四","五","六","七","八","九" ][S.yearIdx]||""}年 · ${ev.beat || "日常"}`;
   document.getElementById("event-body").innerHTML = renderBody(ev.body);
@@ -243,6 +262,33 @@ function applyEffects(eff, logText){
   if (logText) S.log.push(logText);
 }
 
+function recordCaseResult(ev, score){
+  if (!ev || !ev.isCase) return false;
+  if (!S.case) S.case = { monthly:{}, lowStreak:0 };
+  if (!S.case.monthly) S.case.monthly = {};
+  const year = CONTENT.years[S.yearIdx]?.year || 2019;
+  const key = `${year}-${String(ev.month || 1).padStart(2, "0")}`;
+  const row = S.case.monthly[key] || {score:0, count:0};
+  row.score += score;
+  row.count += 1;
+  S.case.monthly[key] = row;
+  S.player.caseScore = (S.player.caseScore || 0) + score;
+
+  if (row.count >= 3){
+    if (row.score < 2) S.case.lowStreak = (S.case.lowStreak || 0) + 1;
+    else S.case.lowStreak = 0;
+
+    S.log.push(`${key} · OCD 月度 case 得分 ${row.score}/6 · 连续低分 ${S.case.lowStreak || 0} 月`);
+    if ((S.case.lowStreak || 0) >= 3){
+      S.ending = "unqualified";
+      renderEnding("unqualified");
+      autoSave();
+      return true;
+    }
+  }
+  return false;
+}
+
 /* ---------- 选项点击 ---------- */
 function onChoice(ev, ch){
   // 处理 spouse name 设定
@@ -256,6 +302,7 @@ function onChoice(ev, ch){
     }
   }
   applyEffects(ch.effects, ch.log);
+  if (recordCaseResult(ev, ch.effects?.caseScore || 0)) return;
   toast(ch.log || "已记录这次选择");
   S.eventIdx++;
   renderTopBar(); renderSidebar();
@@ -266,10 +313,35 @@ function onChoice(ev, ch){
 }
 
 /* ---------- 年末：进入年度回顾 ---------- */
+function yearlyCaseScore(year){
+  if (!S.case || !S.case.monthly) return null;
+  let score = 0, months = 0;
+  Object.keys(S.case.monthly).forEach(key => {
+    if (key.indexOf(`${year}-`) === 0){
+      score += S.case.monthly[key].score || 0;
+      months += 1;
+    }
+  });
+  return months ? {score, months} : null;
+}
+
 function endOfYear(){
   const year = CONTENT.years[S.yearIdx];
   // 更新年末职级（按 review.grade）
-  if (year.review && year.review.grade){ S.player.grade = year.review.grade; }
+  const caseYear = yearlyCaseScore(year.year);
+  if (year.review && year.review.grade){
+    const wantsPromotion = year.review.grade !== S.player.grade;
+    if (wantsPromotion && caseYear && caseYear.score < 12){
+      S.log.push(`${year.year} · case 年度得分 ${caseYear.score}，晋升证据不足`);
+    } else {
+      S.player.grade = year.review.grade;
+      if (caseYear && caseYear.score >= 36){
+        S.player.legend += 3;
+        S.rel.david = clamp((S.rel.david || 0) + 3, 0, 100);
+        S.log.push(`${year.year} · case 年度高分 ${caseYear.score}，晋升材料更扎实`);
+      }
+    }
+  }
   // 站点人数：用下一年的 siteHeadcount，制造"每年都少一点"
   const next = CONTENT.years[S.yearIdx + 1];
   if (next){ S.site.headcount = next.siteHeadcount; }
@@ -283,7 +355,7 @@ function endOfYear(){
     <div>本年 Site 人数<b>${year.siteHeadcount}</b></div>
     <div>当前职级<b>${S.player.grade}</b></div>
     <div>传奇分<b>${S.player.legend}</b></div>
-    <div>金钱（万）<b>${Math.round(S.player.money)}</b></div>
+    <div>Case 分<b>${S.player.caseScore || 0}</b></div>
     <div>体力<b>${clamp(S.player.stam,0,100)}</b></div>
     <div>家庭关系<b>${S.player.family}</b></div>
     <div>Cruce<b>${S.rel.cruce}</b></div>
@@ -472,9 +544,9 @@ function renderEnding(key){
   const p = S.player;
   stats.innerHTML = `
     <div>传奇分<b>${p.legend}</b></div>
+    <div>Case 分<b>${p.caseScore || 0}</b></div>
     <div>父亲分<b>${p.father==null?"—":p.father}</b></div>
     <div>婚姻分<b>${S.rel.spouse}</b></div>
-    <div>Cruce<b>${S.rel.cruce}</b></div>
   `;
 
   // 解锁成就
@@ -500,6 +572,7 @@ function collectAchievements(){
   if (f.cruce_warning_heard) list.push("机场那一句听懂了");
   if (f.xiaozhao_succeed) list.push("师徒接班");
   if (f.farewell_perfect) list.push("谢幕演出");
+  if (S.ending === "unqualified") list.push("不合格工程师");
   if (S.player.legend >= 70) list.push("Backbone 影响力");
   return list;
 }
@@ -523,6 +596,8 @@ function loadGame(){
     const raw = localStorage.getItem(SAVE_KEY);
     if (!raw){ toast("没有可读取的存档"); return; }
     S = JSON.parse(raw);
+    if (!S.case) S.case = { monthly:{}, lowStreak:0 };
+    if (CONTENT.injectMonthlyCases) CONTENT.injectMonthlyCases(S.caseSeed || 1);
     // 路由到合适的屏
     if (S.ending){ renderEnding(S.ending); return; }
     if (S.epiIdx > 0 || (S.finaleIdx >= CONTENT.finale.beats.length && S.ending == null)){

@@ -105,15 +105,18 @@ input { font-family: inherit; }
   max-width: 100%;
 }
 .avaya-logo {
-  font-family: "Arial Black", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  font-family: "Arial Black", "Arial Narrow", Arial, Helvetica, sans-serif;
   font-weight: 900;
-  font-style: italic;
-  color: var(--avaya-red);
-  -webkit-text-fill-color: var(--avaya-red);
+  font-style: normal;
+  color: #d71920;
+  -webkit-text-fill-color: #d71920;
   background: none;
-  letter-spacing: 2px;
+  letter-spacing: -2px;
   margin-right: 14px;
-  text-shadow: 0 2px 12px rgba(214, 38, 62, 0.45);
+  text-shadow: none;
+  transform: scaleX(1.08);
+  transform-origin: left center;
+  display: inline-block;
 }
 .title-content h2 {
   font-size: 38px; font-weight: 300; letter-spacing: 12px;
@@ -247,6 +250,40 @@ input { font-family: inherit; }
   min-width: 0;
 }
 .event-title { font-size: 24px; font-weight: 500; color: #fff; margin-bottom: 6px; }
+.case-title-line {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+.case-severity {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 54px;
+  height: 27px;
+  padding: 0 10px;
+  border-radius: 999px;
+  color: #fff;
+  font: 800 18px/1 "Courier New", monospace;
+  letter-spacing: .5px;
+  box-shadow: inset 0 -1px 0 rgba(0,0,0,.16);
+}
+.severity-nbi { background: #00d100; }
+.severity-bi { background: #ffd51b; color: #111; }
+.severity-sbi { background: #ff5c00; }
+.severity-otg { background: #d90000; }
+.case-number {
+  color: #2f91bc;
+  font: 500 22px/1.1 "Segoe UI", Arial, sans-serif;
+  letter-spacing: 0;
+}
+.case-title-name {
+  display: block;
+  color: var(--text-mute);
+  font-size: 13px;
+  line-height: 1.5;
+}
 .event-meta { color: var(--text-dim); font-size: 11px; letter-spacing: 2px; margin-bottom: 20px; }
 .event-body { color: var(--text); font-size: 14px; line-height: 1.85; margin-bottom: 24px; }
 .event-body p { margin-bottom: 12px; }
@@ -685,8 +722,9 @@ input { font-family: inherit; }
   }
   .avaya-logo {
     display: block;
-    margin: 0 0 4px;
-    letter-spacing: 1px;
+    margin: 0 auto 4px;
+    letter-spacing: -1px;
+    transform-origin: center;
   }
   .title-content h2 {
     font-size: 25px;
@@ -835,6 +873,9 @@ input { font-family: inherit; }
     box-shadow: none;
   }
   .event-title { font-size: 21px; line-height: 1.35; }
+  .case-severity { min-width: 48px; height: 24px; font-size: 16px; }
+  .case-number { font-size: 19px; }
+  .case-title-name { font-size: 12px; }
   .event-meta { margin-bottom: 16px; letter-spacing: 1px; }
   .event-body {
     font-size: 14px;
@@ -951,6 +992,9 @@ input { font-family: inherit; }
   .rel { grid-template-columns: minmax(64px, 1fr) minmax(64px, 1fr) 26px; }
   .event-card { padding: 16px 14px; }
   .event-title { font-size: 19px; }
+  .case-title-line { gap: 6px; }
+  .case-severity { min-width: 44px; height: 23px; padding: 0 8px; font-size: 15px; }
+  .case-number { font-size: 18px; }
   .end-stats { grid-template-columns: 1fr; }
 }
 
@@ -966,4 +1010,536 @@ input { font-family: inherit; }
   .title-btns { margin-bottom: 48px; }
   .create-panel { margin-top: 16px; margin-bottom: 16px; height: calc(100vh - 32px); height: calc(100dvh - 32px); }
   .year-card, .epi-card, .end-card, .credit-card { margin-top: 4vh; }
+}
+
+/* ============= OCD3 enterprise console skin ============= */
+html, body {
+  background: #f3f3f3;
+  color: #111;
+  font-family: Arial, "Microsoft YaHei", SimSun, sans-serif;
+  font-size: 12px;
+  line-height: 1.35;
+}
+
+.screen {
+  background: #f3f3f3;
+}
+
+.btn-primary,
+.btn-ghost {
+  min-height: 24px;
+  padding: 3px 10px;
+  border-radius: 2px;
+  border: 1px solid #9c9c9c;
+  background: linear-gradient(#fff, #dcdcdc);
+  color: #111;
+  box-shadow: none;
+  font-size: 12px;
+  font-weight: 400;
+  letter-spacing: 0;
+}
+.btn-primary:hover,
+.btn-ghost:hover {
+  transform: none;
+  background: linear-gradient(#fff5f5, #f0caca);
+  box-shadow: none;
+}
+.btn-icon {
+  width: 22px;
+  height: 20px;
+  border-radius: 1px;
+  border: 1px solid #9c9c9c;
+  background: linear-gradient(#fff, #ddd);
+  color: #111;
+  font-size: 12px;
+}
+
+#screen-game {
+  background: #fff;
+  padding-top: 46px;
+}
+#screen-game::before {
+  content: "AVAYA";
+  position: absolute;
+  left: 4px;
+  top: 0;
+  height: 46px;
+  color: #d71920;
+  font: 900 36px/46px "Arial Black", "Arial Narrow", Arial, sans-serif;
+  letter-spacing: -2px;
+  transform: scaleX(1.08);
+  transform-origin: left center;
+  z-index: 30;
+}
+#screen-game::after {
+  content: "OCD3\A Onestop Case Distributor 3.26.0403";
+  white-space: pre;
+  position: absolute;
+  right: 4px;
+  top: 4px;
+  z-index: 30;
+  color: #000;
+  text-align: right;
+  font: 700 14px/15px Arial, sans-serif;
+}
+
+.topbar {
+  min-height: 22px;
+  height: 22px;
+  padding: 0 4px;
+  gap: 14px;
+  background: #d90000;
+  color: #fff;
+  border-top: 0;
+  border-bottom: 1px solid #a80000;
+  align-items: center;
+}
+.topbar::before {
+  content: "Log Out";
+  flex: 0 0 190px;
+  color: #fff;
+}
+.topbar::after {
+  content: "Logged in as Arthur Lu (lu122) on plocdvmap01 from 135.27.208.253";
+  margin-left: auto;
+  color: #fff;
+}
+.tb-left,
+.tb-center,
+.tb-right {
+  gap: 8px;
+}
+.tb-left {
+  flex: 0 0 auto;
+}
+.tb-center {
+  justify-content: flex-start;
+}
+.tb-date,
+.tb-season,
+.tb-grade,
+.tb-stat,
+.tb-stat b {
+  color: #fff;
+  font-size: 11px;
+  font-weight: 400;
+  letter-spacing: 0;
+}
+.tb-grade {
+  padding: 0 5px;
+  background: rgba(255,255,255,.18);
+  border: 1px solid rgba(255,255,255,.45);
+  color: #fff;
+}
+
+.stage {
+  grid-template-columns: 210px minmax(0, 1fr) 235px;
+  height: calc(100vh - 68px);
+  height: calc(100dvh - 68px);
+  background: #fff;
+  border-top: 1px solid #c8c8c8;
+}
+.side-left,
+.side-right {
+  background: #e9e9e9;
+  color: #111;
+  border-color: #c6c6c6;
+  padding: 0;
+  font-size: 12px;
+}
+.side-left::before,
+.side-right h4 {
+  display: block;
+  background: #777;
+  color: #fff;
+  padding: 2px 4px;
+  font-size: 12px;
+  font-weight: 400;
+}
+.side-left::before {
+  content: "Workflow";
+}
+.side-left::after {
+  content: "Features\A Calendar\A Calendar - BBE On-Call\A Calendar - GEM Maintenance-BBE\A Event History\A Locator - GEM/BBE\A Reports\A Server Logs\A\A Tools & Reference\A ASG Challenge/Response\A Creative Activity\A Mailing Lists\A OneNote\A Quote Generator\A Unix Time Conversion\A World Clock\A\A Help & Status\A Documentation & User Guides\A OCD-FORGE - Bugs & Features\A Websocket Status: OK";
+  white-space: pre-line;
+  display: block;
+  padding: 4px;
+  color: #111;
+  line-height: 1.35;
+}
+
+.scene-box {
+  height: auto;
+  min-height: 0;
+  border: 0;
+  border-radius: 0;
+  margin: 0;
+  padding: 0;
+  background: transparent;
+}
+.scene-bg,
+.scene-box::before {
+  display: none;
+}
+.scene-title,
+.scene-sub {
+  position: static;
+  display: block;
+  color: #fff;
+  background: #4597aa;
+  text-shadow: none;
+  font-size: 12px;
+  font-weight: 400;
+  padding: 2px 4px;
+}
+.scene-sub {
+  color: #111;
+  background: transparent;
+}
+.badge-row {
+  display: block;
+  margin: 0;
+  padding: 3px 4px;
+}
+.badge {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border: 0;
+  background: transparent;
+  padding: 1px 0;
+  text-align: left;
+}
+.badge-lbl,
+.badge-val {
+  display: inline;
+  color: #111;
+  font-size: 12px;
+  font-weight: 400;
+}
+.badge-val {
+  min-width: 28px;
+  padding: 0 7px;
+  border-radius: 9px;
+  background: #00c800;
+  color: #fff;
+  text-align: center;
+  font-weight: 700;
+}
+.relation-block {
+  padding: 0 4px 8px;
+}
+.relation-block h4 {
+  margin: 4px -4px 3px;
+  padding: 2px 4px;
+  background: #777;
+  color: #fff;
+  font-size: 12px;
+  font-weight: 400;
+  letter-spacing: 0;
+}
+.rel {
+  grid-template-columns: 1fr 44px 24px;
+  gap: 4px;
+  margin-bottom: 3px;
+  font-size: 11px;
+}
+.rel span,
+.rel b {
+  color: #111;
+}
+.rel .bar {
+  height: 8px;
+  border-radius: 0;
+  background: #d0d0d0;
+}
+.rel .bar i,
+#rel-cruce .bar i {
+  background: #4597aa;
+}
+
+.event-area {
+  display: block;
+  padding: 0 0 20px;
+  background: #fff;
+}
+.event-area::before {
+  content: "Server Messages";
+  display: block;
+  height: 17px;
+  padding-left: 8px;
+  background: #fff;
+  color: #d90000;
+  font-size: 11px;
+  line-height: 17px;
+  border-bottom: 1px solid #d6d6d6;
+}
+.event-card {
+  max-width: none;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  background: #fff;
+  color: #111;
+  padding: 0;
+}
+.event-title {
+  min-height: 29px;
+  margin: 0;
+  padding: 4px 8px 3px;
+  border-bottom: 1px solid #ddd;
+  background: #f7f7f7;
+  color: #111;
+  font-size: 14px;
+  font-weight: 400;
+}
+.event-meta {
+  margin: 0;
+  padding: 3px 8px;
+  color: #555;
+  background: #fff;
+  border-bottom: 1px solid #ededed;
+  font-size: 11px;
+  letter-spacing: 0;
+}
+.event-body {
+  margin: 0;
+  padding: 0;
+  color: #111;
+  font-size: 12px;
+  line-height: 1.35;
+}
+.event-body p,
+.event-body .ui-mail,
+.event-body .ui-im,
+.event-body .quote {
+  margin: 0;
+  padding: 7px 8px;
+  border-bottom: 1px solid #eee;
+  background: #fff;
+  color: #111;
+  font-style: normal;
+}
+.event-body p.narr {
+  color: #111;
+  background: #fafafa;
+}
+.event-body p.dialog,
+.event-body .ui-im {
+  color: #111;
+  border-left: 0;
+  background: #fff;
+}
+.event-body .quote,
+.event-body .ui-mail {
+  border-left: 0;
+  border-right: 0;
+  border-top: 0;
+  border-radius: 0;
+  background: #fbfbfb;
+}
+.event-body .ui-mail .m-from,
+.event-body .ui-mail .m-sub,
+.event-body .ui-im .m-who {
+  color: #2f91bc;
+}
+.event-choices {
+  gap: 0;
+}
+.choice {
+  min-height: 24px;
+  padding: 5px 8px;
+  border: 0;
+  border-bottom: 1px solid #eee;
+  border-radius: 0;
+  background: #fff;
+  color: #111;
+  font-size: 12px;
+}
+.choice:nth-child(even) {
+  background: #fbfbfb;
+}
+.choice:hover {
+  transform: none;
+  border-color: #eee;
+  background: #e9f5fa;
+}
+.choice .ch-sub {
+  display: inline;
+  margin-left: 12px;
+  color: #666;
+  font-size: 11px;
+}
+.choice .ch-tag {
+  border-radius: 2px;
+  background: #ddd;
+  color: #111;
+  font: 700 10px/1 Arial, sans-serif;
+}
+
+.case-title-line {
+  display: inline-flex;
+  margin: 0 6px 0 0;
+  vertical-align: middle;
+}
+.case-severity {
+  min-width: 44px;
+  height: 18px;
+  padding: 0 8px;
+  font: 800 13px/18px "Courier New", monospace;
+}
+.case-number {
+  color: #2f91bc;
+  font: 400 16px/18px Arial, sans-serif;
+}
+.case-title-name {
+  display: inline;
+  color: #111;
+  font-size: 12px;
+}
+
+.side-right h4 {
+  margin: 0;
+  letter-spacing: 0;
+}
+.log-list li {
+  padding: 4px;
+  color: #111;
+  border-bottom: 1px solid #d7d7d7;
+  font-size: 11px;
+}
+.log-list li b {
+  color: #2f91bc;
+}
+
+.title-bg,
+.create-bg,
+.year-bg,
+.epi-bg,
+.end-bg {
+  background: #f3f3f3 !important;
+}
+.title-bg::before,
+.title-bg::after,
+.create-bg::before,
+.epi-bg::after {
+  display: none;
+}
+.title-content,
+.create-panel,
+.year-card,
+.epi-card,
+.end-card,
+.credit-card,
+.modal-card {
+  background: #fff;
+  color: #111;
+  border: 1px solid #bdbdbd;
+  border-radius: 0;
+  box-shadow: none;
+}
+.title-content {
+  align-items: flex-start;
+  justify-content: flex-start;
+  padding-top: 58px;
+  text-align: left;
+}
+.title-content::before {
+  content: "AVAYA";
+  position: absolute;
+  left: 4px;
+  top: 0;
+  color: #d71920;
+  font: 900 38px/46px "Arial Black", Arial, sans-serif;
+  letter-spacing: -2px;
+  transform: scaleX(1.08);
+  transform-origin: left center;
+}
+.title-content::after {
+  content: "OCD3\A Onestop Case Distributor 3.26.0403";
+  white-space: pre;
+  position: absolute;
+  right: 6px;
+  top: 5px;
+  color: #000;
+  text-align: right;
+  font: 700 14px/15px Arial, sans-serif;
+}
+.title-tag,
+.title-sub,
+.title-foot,
+.title-meta,
+.panel-sub,
+.credit-card p,
+.epi-narr,
+.end-narr {
+  color: #111;
+}
+.title-content h1 {
+  margin-top: 26px;
+  background: none;
+  -webkit-text-fill-color: #111;
+  color: #111;
+  font-size: 28px;
+  font-weight: 700;
+  letter-spacing: 0;
+}
+.title-content h1 .avaya-logo {
+  display: none;
+}
+.title-content h2,
+.panel-title,
+.epi-question h3,
+.credit-card h2,
+.year-card h2,
+.epi-card h2,
+.end-card h1 {
+  background: none;
+  -webkit-text-fill-color: #111;
+  color: #111;
+  letter-spacing: 0;
+}
+.title-btns {
+  margin-bottom: 30px;
+}
+
+@media (max-width: 760px) {
+  #screen-game {
+    padding-top: 44px;
+  }
+  #screen-game::before,
+  .title-content::before {
+    font-size: 30px;
+    line-height: 42px;
+  }
+  #screen-game::after,
+  .title-content::after {
+    font-size: 11px;
+    line-height: 12px;
+  }
+  .topbar {
+    min-height: 44px;
+    height: auto;
+  }
+  .topbar::before,
+  .topbar::after {
+    display: none;
+  }
+  .stage {
+    display: block;
+    height: calc(100dvh - 88px);
+  }
+  .side-left::after {
+    display: none;
+  }
+  .side-right {
+    display: none;
+  }
+  .title-content {
+    padding-top: 56px;
+    text-align: left;
+  }
+  .title-content h1 .avaya-logo {
+    display: none;
+  }
 }

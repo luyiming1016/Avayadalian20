@@ -1146,6 +1146,70 @@ DayState:
 
 ---
 
+## 15. 训练期与 OCD / Siebel Case 系统（新增）
+
+### 15.1 年度节奏
+
+- **2018 年为整体培训期**：主角作为 Contractor / 新人，主要参与内部培训、shadow 老 K、学习 Avaya Aura 基础产品栈、工单书写规范、客户沟通模板、SLA / severity 判断、远程抓包和日志阅读。
+- **2019 年开始进入 6am-3pm 早班**：主角开始承担 APAC 早班 case/SR 处理。每天清晨先打开公司内部开发的 **OCD（Onestop Case Distributor）** 系统领取分派 case，随后在后端 **Siebel** 系统中维护 SR、客户沟通、action plan、日志附件和 closure note。
+- **case 是独立于主线剧情的日常任务**：主线剧情保证年度叙事和人物关系推进；case 系统提供技术成长、晋升压力和淘汰风险。
+
+### 15.2 Case 来源与设计参考
+
+- case 题库参考公开 Avaya Support / Avaya Support Forums / 官方产品文档中的常见排障主题，并全部改写为虚构客户、虚构 SR 和游戏化选择题。
+- 覆盖 severity：
+  - **NBI**：Non-Business Impact，低影响咨询、配置确认、单用户问题。
+  - **BI**：Business Impact，业务受影响但存在 workaround。
+  - **SBI**：Severe Business Impact，关键业务严重受影响，需要快速 containment。
+  - **OTG / OUG**：Outage，全局或大范围中断，需要 war room、RCA 和高频更新。
+- 覆盖产品域：
+  - Avaya CM
+  - Avaya SM
+  - Avaya SMGR
+  - Avaya AES
+  - Avaya AMS
+  - media-gateway
+  - AADS
+  - security
+  - 终端话机
+  - SIP / Trunk / Routing 综合问题
+
+### 15.3 Case 玩法
+
+- 游戏内维护一个 **100 个不同 case 的题库**。
+- 从第二年开始，每个月通过 OCD 随机分配 **3 个 case/SR** 给玩家。
+- 每个 case 以选择题出现：
+  - 题干包含 severity、产品、客户现象、OCD/Siebel 摘要和关键日志线索。
+  - case 卡片顶部使用彩色 severity badge 显示 NBI / BI / SBI / OTG，并显示 `1-XXXXXXX` 风格的随机 case 号。
+  - 4 个选项中只有一个最佳答案。
+  - 最佳答案：`+2 case score`，视为解决 case。
+  - 次优答案：`+1 case score`，临时止血但需要补 follow-up。
+  - 中间答案：`+0 case score`，没有造成事故，但没有推进根因。
+  - 最差答案：`-1 case score`，扩大影响或违反 case handling 规范。
+
+### 15.4 晋升与淘汰
+
+- `caseScore` 是技术职业线的重要隐藏/显示数值之一，和 `legend`、Manager 关系共同影响晋升姿态。
+- case 分数持续高时，玩家更容易获得：
+  - 更高年度评价措辞。
+  - 更高 `legend` 累积。
+  - L15-1 / L15-2 晋升叙事中的“技术证据”。
+- 从 2019 年起，如果玩家连续多个月 case 表现低于合格线，触发 **提前淘汰坏结局：不合格工程师**。
+- 该坏结局不是裁员大潮，而是能力不达标：OCD 分配的 SR 长期处理质量过低、Siebel closure note 反复被退回、客户 escalation 叠加，最终进入 PIP 并提前离开。
+
+### 15.5 2018 内部培训内容
+
+2018 年培训期应在剧情中逐步出现：
+
+- Avaya Aura 架构概览：CM / SM / SMGR / AES / media-gateway / AADS / AMS / endpoint。
+- Severity 判断训练：NBI / BI / SBI / OTG 的边界和升级路径。
+- OCD 操作训练：认领 case、查看队列、阅读客户摘要、设置 next action。
+- Siebel SR 规范：客户沟通记录、附件、日志命名、RCA 草稿、closure note。
+- 日志和工具训练：CM SAT、SM trace、SMGR alarm、AES service 状态、AADS device sync、gateway board status、电话注册状态。
+- 客户沟通训练：6am 早班 handover、30/60 分钟 update 节奏、war room 发言、英文邮件模板。
+
+---
+
 ## 附录 A：术语表
 - **OUG**：Outage，全面宕机
 - **SBI**：Severe Business Impact

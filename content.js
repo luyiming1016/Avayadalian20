@@ -853,6 +853,12 @@ const CONTENT = {
       threeYearsLater:"3 年后……（这一段镜头被刻意留白）",
       bad:true
     },
+    unqualified: {
+      name:"「不合格工程师」",
+      narr:"OCD 里分给你的 SR 一次次被退回，Siebel closure note 上堆满了 reviewer comment。第三个月低分后，David 把你叫进 15-403：这一次不是全球 RIF，而是能力不达标。",
+      threeYearsLater:"3 年后，你已经离开通信行业。偶尔路过软件园 15 号楼，会想起那些 6am 早班里没有闭环的 case。",
+      bad:true
+    },
     legendary: {
       name:"★「Backbone 传奇」",
       narr:"被裁的那一周，你写的最后一篇 KB 在全球被同事自发翻译成 5 种语言。镜头切回产房，你对怀里的孩子说：「你爸爸做的活儿，机器还要再学十年。」",
@@ -915,6 +921,16 @@ const CONTENT = {
     12:"十二月的灯很亮，年会、绩效和下一年的不确定性一起落在每个人肩上。"
   };
 
+  const trainingHooks2018 = {
+    2:"内部培训第二个月，老 K 带你过 CM SAT 基础命令：display station、status trunk、list trace，一边讲一边让你把每一步写进 notebook。",
+    3:"三月的培训主题是 severity 判断：NBI、BI、SBI、OTG 的边界，什么时候发 30 分钟 update，什么时候必须拉 war room。",
+    6:"六月你第一次正式练 OCD 和 Siebel：认领模拟 SR、补客户沟通记录、上传日志附件、写 closure note，每一步都被 David 退回来改过。",
+    9:"九月的内部 lab 把 CM、SM、SMGR、AES 和 gateway 串成一张图。Cruce 说真正的 Backbone 不是记住产品名，是知道问题会从哪里漏出来。",
+    10:"十月开始做 shadow shift。你坐在老 K 后面看他处理早班 handover，学会先读客户影响，再看日志，而不是反过来。",
+    11:"十一月的英文邮件训练让你头疼：同一句“我们正在调查”，要写得既不空泛，也不把团队锁死在错误承诺里。",
+    12:"十二月培训收官，你交出第一份模拟 RCA。David 只批了一句话：能看出你认真，但还不像能独立扛早班的人。"
+  };
+
   const monthScenes = {
     1:["office","💼"], 2:["home","🏮"], 3:["conference","📝"], 4:["goldstone","🧳"],
     5:["sea","🚣"], 6:["warroom","📈"], 7:["desk","💻"], 8:["cafe","🌧"],
@@ -928,22 +944,23 @@ const CONTENT = {
   function makeMonthlyEvent(year, month){
     const arc = arcs[year.year];
     const scene = monthScenes[month] || ["office","📌"];
+    const isTraining = year.year === 2018 && trainingHooks2018[month];
     return {
       id:`y${String(year.year).slice(2)}-m${String(month).padStart(2,"0")}`,
       month,
       beat:null,
-      title:`${month}月 · ${arc.stage} · 月度回合`,
+      title:isTraining ? `${month}月 · 内部培训 · ${arc.stage}` : `${month}月 · ${arc.stage} · 月度回合`,
       scene:scene[0],
       emoji:scene[1],
       body:[
-        {type:"narr", text:monthlyHooks[month]},
+        {type:"narr", text:isTraining ? trainingHooks2018[month] : monthlyHooks[month]},
         {type:"p", text:arc.work},
         {type:"p", text:arc.home}
       ],
       choices:[
-        choice("把这个月的关键 case 写成复盘，发给团队", "legend", "技术影响力稳步累积",
+        choice(isTraining ? "把培训笔记整理成一页 checklist，发给同届新人" : "把这个月的关键 case 写成复盘，发给团队", "legend", "技术影响力稳步累积",
           {tech:2, comm:1, legend:1, stam:-3}, `${year.year}年${month}月 · 写下月度复盘`),
-        choice("优先把周末留给家里和自己", "EQ", "状态恢复，但曝光略少",
+        choice(isTraining ? "下班后继续在 lab 里重放一遍老师的 demo" : "优先把周末留给家里和自己", "EQ", "状态恢复，但曝光略少",
           {hp:2, family:2, spouse:1, david:-1}, `${year.year}年${month}月 · 留出生活边界`)
       ]
     };
@@ -1059,3 +1076,178 @@ const CONTENT = {
       });
   });
 })();
+
+/* =================================================================
+ * OCD / Siebel case bank
+ * 100 个虚构 SR，题型参考公开 Avaya 文档与论坛常见排障主题后改写。
+ * ================================================================= */
+CONTENT.caseBank = (() => {
+  const products = [
+    {name:"Avaya CM", tool:"CM SAT / status station / list trace station", area:"call processing"},
+    {name:"Avaya SM", tool:"traceSM / SIP Entity Monitoring / routing test", area:"SIP routing"},
+    {name:"Avaya SMGR", tool:"SMGR alarm / DRS / user profile audit", area:"central management"},
+    {name:"Avaya AES", tool:"AES OAM / TSAPI / DMCC service status", area:"CTI integration"},
+    {name:"Avaya AMS", tool:"AMS service logs / mailbox trace", area:"messaging"},
+    {name:"media-gateway", tool:"status media-gateway / list configuration / board alarms", area:"gateway hardware"},
+    {name:"AADS", tool:"AADS logs / device sync / service interface", area:"device services"},
+    {name:"security", tool:"certificate store / TLS handshake / firewall logs", area:"security"},
+    {name:"endpoint phone", tool:"phone registration / DHCP option / firmware log", area:"endpoint"},
+    {name:"SIP trunk", tool:"SIP ladder / SBC trace / route pattern", area:"trunk routing"}
+  ];
+
+  const scenarios = [
+    {sev:"NBI", symptom:"single user cannot register after password reset", evidence:"OCD shows one extension affected; Siebel has no site outage flag.",
+      correct:"Check user profile, authentication password, station security code and registration status before changing routing.",
+      partial:"Ask the customer to reboot the endpoint and collect fresh registration logs.",
+      neutral:"Move the SR to monitoring and wait for another occurrence.",
+      bad:"Restart the whole application stack for a single-user registration issue."},
+    {sev:"NBI", symptom:"customer asks why a feature button disappeared after template change", evidence:"Only new hires using the latest template report the issue.",
+      correct:"Compare the endpoint/station template with a known good user and correct the button assignment.",
+      partial:"Clone an older working profile for the affected user and document the template gap.",
+      neutral:"Tell the customer the feature is unsupported without checking the template.",
+      bad:"Delete and recreate the user without preserving current assignments."},
+    {sev:"BI", symptom:"intermittent one-way audio on internal transfers", evidence:"SIP ladder is clean but RTP path changes after transfer.",
+      correct:"Validate network region, codec set, media shuffling and gateway/RTP path before blaming endpoints.",
+      partial:"Disable media shuffling as a temporary workaround and schedule RCA.",
+      neutral:"Collect another trace only after the next user complaint.",
+      bad:"Change trunk signaling group settings during business hours without rollback."},
+    {sev:"BI", symptom:"CTI screen-pop stops for a subset of agents", evidence:"Calls arrive, but the desktop app loses event stream after agent login.",
+      correct:"Check AES TSAPI/DMCC service, CTI link status, agent login mapping and application session limits.",
+      partial:"Restart the affected CTI client group after confirming calls are not blocked.",
+      neutral:"Ask agents to relogin every hour as a workaround.",
+      bad:"Busyout the hunt group to test CTI behavior during production peak."},
+    {sev:"SBI", symptom:"major branch reports outbound PSTN failures", evidence:"Inbound calls work; outbound fails after route selection.",
+      correct:"Trace the failed call, verify route pattern/ARS, trunk group status and carrier response code.",
+      partial:"Route critical calls through an alternate trunk group and keep the SR open for RCA.",
+      neutral:"Ask the carrier to investigate without sending trace evidence.",
+      bad:"Reset all trunks and gateways without isolating the failed route."},
+    {sev:"SBI", symptom:"large user group cannot log in after certificate renewal", evidence:"TLS handshake failures start at the renewal window.",
+      correct:"Verify certificate chain, trust store, service binding and restart only the affected secure service if needed.",
+      partial:"Temporarily fail traffic to a node with a valid certificate while preparing the fix.",
+      neutral:"Tell the customer to bypass TLS permanently.",
+      bad:"Import a self-signed certificate into production without approval."},
+    {sev:"OTG", symptom:"site-wide call processing outage after maintenance", evidence:"Multiple alarms, failed registrations, and customers opening duplicate SRs.",
+      correct:"Declare war room, identify last change, collect core alarms/traces, restore known-good path, then RCA.",
+      partial:"Rollback the most recent approved change and keep bridge updates every 30 minutes.",
+      neutral:"Work only the first Siebel SR and ignore duplicate outage reports.",
+      bad:"Make several unrelated config changes while the outage bridge is live."},
+    {sev:"OTG", symptom:"all SIP calls fail between enterprise and carrier", evidence:"OPTIONS/INVITE flow stops at the edge after firewall change.",
+      correct:"Validate SIP entity links, firewall/NAT path, TLS/SRTP policy and carrier reachability using trace evidence.",
+      partial:"Fail traffic to the backup carrier route while network restores the primary path.",
+      neutral:"Ask users to use mobile phones until tomorrow.",
+      bad:"Disable SIP security globally to see if calls come back."},
+    {sev:"BI", symptom:"voicemail or messaging notification delay impacts executives", evidence:"Messages are stored, but notification events queue for 20 minutes.",
+      correct:"Check messaging service queue, integration account, event delivery and recent mailbox policy changes.",
+      partial:"Manually flush/restart the notification worker after saving current queue evidence.",
+      neutral:"Close as cosmetic because messages are eventually delivered.",
+      bad:"Purge the queue without customer approval or backup."},
+    {sev:"NBI", symptom:"new phone model shows wrong time and locale", evidence:"Only one subnet and one firmware load are affected.",
+      correct:"Check DHCP/time server, location profile, firmware compatibility and endpoint locale settings.",
+      partial:"Manually correct a VIP phone and schedule subnet template cleanup.",
+      neutral:"Ask users to ignore the display until next patch cycle.",
+      bad:"Factory reset all phones in the subnet during office hours."}
+  ];
+
+  const cases = [];
+  products.forEach((product, pIdx) => {
+    scenarios.forEach((scenario, sIdx) => {
+      const n = pIdx * scenarios.length + sIdx + 1;
+      cases.push({
+        id:`SR-${String(n).padStart(3, "0")}`,
+        product:product.name,
+        severity:scenario.sev,
+        area:product.area,
+        tool:product.tool,
+        title:`${scenario.sev} · ${product.name} · ${scenario.symptom}`,
+        prompt:`OCD 分配 ${scenario.sev} case：${product.name} 出现 ${scenario.symptom}。Siebel 摘要：${scenario.evidence} 你会如何处理？`,
+        choices:[
+          {score:2, label:scenario.correct, sub:"最佳：先定位影响面和证据链，再执行最小变更。"},
+          {score:1, label:scenario.partial, sub:"次优：能止血，但需要补 RCA / follow-up。"},
+          {score:0, label:scenario.neutral, sub:"中间：不扩大事故，但没有有效推进。"},
+          {score:-1, label:scenario.bad, sub:"最差：高风险、无证据或违反 SR 处理规范。"}
+        ]
+      });
+    });
+  });
+  return cases;
+})();
+
+CONTENT.injectMonthlyCases = function injectMonthlyCases(seed){
+  const rand = (n) => {
+    let x = Math.sin(n * 9301 + seed * 49297) * 233280;
+    return x - Math.floor(x);
+  };
+  const pickCases = (year, month) => {
+    const ranked = CONTENT.caseBank
+      .map((c, idx) => ({c, r: rand(year * 10000 + month * 100 + idx)}))
+      .sort((a, b) => a.r - b.r)
+      .slice(0, 3)
+      .map(x => x.c);
+    return ranked;
+  };
+  const rotateChoices = (choices, offset) => choices
+    .map((c, idx) => choices[(idx + offset) % choices.length]);
+
+  const makeCaseNo = (year, month, slot, srId) => {
+    const base = year * 10000 + month * 100 + slot * 17 + parseInt(srId.replace(/\D/g, ""), 10);
+    const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+    if (rand(base) > 0.74){
+      let n = "";
+      for (let i = 0; i < 11; i++) n += Math.floor(rand(base + i * 13) * 10);
+      return `1-${n}`;
+    }
+    let id = "";
+    for (let i = 0; i < 7; i++) id += chars[Math.floor(rand(base + i * 19) * chars.length)];
+    return `1-${id}`;
+  };
+
+  CONTENT.years.forEach(year => {
+    year.events = (year.events || []).filter(ev => !ev.isCase);
+    if (year.year < 2019) return;
+    const additions = [];
+    for (let month = 1; month <= 12; month++){
+      pickCases(year.year, month).forEach((sr, slot) => {
+        const order = (year.year + month + slot) % 4;
+        const caseNo = makeCaseNo(year.year, month, slot + 1, sr.id);
+        additions.push({
+          id:`case-${year.year}-${String(month).padStart(2, "0")}-${slot + 1}-${sr.id}`,
+          isCase:true,
+          month,
+          caseId:sr.id,
+          caseNo,
+          severity:sr.severity,
+          product:sr.product,
+          beat:"OCD / Siebel 日常 SR",
+          title:`${month}月 · OCD 早班 Case ${slot + 1} · ${sr.product}`,
+          scene: sr.severity === "OTG" ? "warroom" : sr.severity === "SBI" ? "conference" : "desk",
+          emoji: sr.severity === "OTG" ? "🚨" : sr.severity === "SBI" ? "🔥" : "📟",
+          body:[
+            {type:"narr", text:`06:00-15:00 早班。你打开 OCD，系统把 ${caseNo} 推到你的队列；后端 Siebel SR 已经自动关联客户影响、附件和上一班 handover。`},
+            {type:"p", text:sr.prompt},
+            {type:"quote", text:`Case: ${caseNo} · Severity: ${sr.severity} · Product: ${sr.product} · Tooling: ${sr.tool}`}
+          ],
+          choices: rotateChoices(sr.choices, order).map(ch => ({
+            label:ch.label,
+            tag: ch.score === 2 ? "legend" : ch.score < 0 ? "danger" : "EQ",
+            sub:`${ch.sub} Case score ${ch.score > 0 ? "+" : ""}${ch.score}`,
+            effects:{
+              caseScore:ch.score,
+              tech: ch.score === 2 ? 1 : 0,
+              comm: ch.score === 1 ? 1 : 0,
+              legend: ch.score === 2 && sr.severity !== "NBI" ? 1 : 0,
+              david: ch.score < 0 ? -2 : 0,
+              hp: ch.score < 0 ? -1 : 0
+            },
+            log:`${year.year}-${String(month).padStart(2, "0")} · ${caseNo} · ${sr.product} · ${ch.score > 0 ? "推进" : ch.score === 0 ? "未闭环" : "失误"}`
+          }))
+        });
+      });
+    }
+
+    year.events = year.events.concat(additions).sort((a, b) => {
+      const pa = a.isCase ? 60 + Number(a.id.split("-")[3] || 0) : a.beat ? 50 : a.id && a.id.indexOf("union-") > -1 ? 30 : 10;
+      const pb = b.isCase ? 60 + Number(b.id.split("-")[3] || 0) : b.beat ? 50 : b.id && b.id.indexOf("union-") > -1 ? 30 : 10;
+      return (a.month || 12) * 100 + pa - ((b.month || 12) * 100 + pb);
+    });
+  });
+};
