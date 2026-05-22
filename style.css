@@ -1874,7 +1874,8 @@ input { font-family: inherit; }
 #screen-epilogue.active,
 #screen-ending.active,
 #screen-credits.active,
-#screen-finale.active {
+#screen-finale.active,
+#screen-saveload.active {
   background-color: #eef0f2 !important;
   background-image:
     linear-gradient(
@@ -1908,7 +1909,8 @@ input { font-family: inherit; }
 #screen-finale.active::before,
 #screen-epilogue.active::before,
 #screen-ending.active::before,
-#screen-credits.active::before {
+#screen-credits.active::before,
+#screen-saveload.active::before {
   content: "";
   position: fixed;
   left: 8px;
@@ -1926,7 +1928,8 @@ input { font-family: inherit; }
 #screen-finale.active::after,
 #screen-epilogue.active::after,
 #screen-ending.active::after,
-#screen-credits.active::after {
+#screen-credits.active::after,
+#screen-saveload.active::after {
   content: "Avaya Dalian 20年 - Backbone 传奇\A v1.2";
   white-space: pre;
   position: fixed;
@@ -2524,7 +2527,8 @@ input { font-family: inherit; }
   #screen-finale.active::before,
   #screen-epilogue.active::before,
   #screen-ending.active::before,
-  #screen-credits.active::before {
+  #screen-credits.active::before,
+  #screen-saveload.active::before {
     width: 100px;
     height: 28px;
     left: 6px;
@@ -2536,7 +2540,8 @@ input { font-family: inherit; }
   #screen-finale.active::after,
   #screen-epilogue.active::after,
   #screen-ending.active::after,
-  #screen-credits.active::after {
+  #screen-credits.active::after,
+  #screen-saveload.active::after {
     font-size: 10px;
     line-height: 12px;
     right: 8px;
@@ -2548,7 +2553,8 @@ input { font-family: inherit; }
   #screen-epilogue.active,
   #screen-ending.active,
   #screen-credits.active,
-  #screen-finale.active {
+  #screen-finale.active,
+  #screen-saveload.active {
     background-image:
       linear-gradient(
         #ffffff 0, #ffffff 42px,
@@ -2650,4 +2656,213 @@ input { font-family: inherit; }
   #screen-finale.active .finale-right { min-height: 220px; }
   #screen-finale.active .finale-bottom { margin: 0 8px 16px !important; padding: 18px 16px !important; }
   #screen-finale.active .finale-monologue { font-size: 14px !important; }
+}
+
+/* ============= Save / Load 存档管理屏 ============= */
+#screen-saveload.active .sl-panel {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  max-width: 1080px;
+  margin: 24px auto 32px;
+  padding: 0 0 22px;
+  background: #fff;
+  border: 1px solid #d5dee3;
+  box-shadow: 0 1px 2px rgba(0,0,0,.08);
+}
+
+#screen-saveload .sl-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 8px 14px;
+  border-top: 1px solid #fff;
+  border-bottom: 1px solid #cfd8de;
+  background: linear-gradient(#f8fbfc, #dce7ec);
+}
+#screen-saveload .sl-header-left { min-width: 0; }
+#screen-saveload .sl-header h2 {
+  margin: 0;
+  color: #145164;
+  font: 700 14px/1.4 Arial, "Microsoft YaHei", sans-serif;
+  letter-spacing: 0;
+}
+#screen-saveload .sl-sub {
+  margin: 2px 0 0;
+  color: #4b6976;
+  font-size: 12px;
+}
+
+#screen-saveload .sl-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  padding: 14px;
+}
+
+.slot-card {
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  background: #fff;
+  border: 1px solid #d5dee3;
+  border-left: 4px solid #4a9bb1;
+  min-height: 168px;
+}
+.slot-card.slot-empty {
+  background: #fafcfd;
+  border-left-color: #b9c0c4;
+}
+.slot-card.slot-auto {
+  border-left-color: #2f91bc;
+  background: linear-gradient(#ffffff, #f4fafc);
+}
+.slot-card.slot-auto.slot-empty { background: #f6f8f9; border-left-color: #b9c0c4; }
+
+.slot-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 5px 10px;
+  border-bottom: 1px solid #e6e6e6;
+  background: #f3f6f8;
+}
+.slot-no {
+  color: #145164;
+  font: 700 12px/1.4 "Courier New", monospace;
+  letter-spacing: 1px;
+}
+.slot-auto .slot-no { color: #c40000; }
+.slot-tag {
+  padding: 1px 7px;
+  border: 1px solid #f0d891;
+  background: #fff6cf;
+  color: #604400;
+  font: 600 11px/1.5 Arial, "Microsoft YaHei", sans-serif;
+  white-space: nowrap;
+}
+.slot-auto .slot-tag {
+  border-color: #c6e3eb;
+  background: #eaf5f9;
+  color: #145164;
+}
+
+.slot-body {
+  padding: 10px 12px;
+  color: #111;
+  font-size: 12px;
+  line-height: 1.6;
+}
+.slot-name {
+  margin-bottom: 8px;
+  font: 700 15px/1.35 Arial, "Microsoft YaHei", sans-serif;
+  color: #111;
+}
+.slot-name .slot-en {
+  margin-left: 6px;
+  color: #777;
+  font: 400 12px/1.4 "Courier New", monospace;
+}
+.slot-meta {
+  display: grid;
+  grid-template-columns: 56px 1fr 56px 1fr;
+  gap: 3px 8px;
+  margin: 0;
+}
+.slot-meta dt {
+  color: #777;
+  font-size: 11px;
+}
+.slot-meta dd {
+  margin: 0;
+  color: #111;
+  font: 700 12px/1.4 Arial, "Microsoft YaHei", sans-serif;
+}
+.slot-real {
+  margin-top: 8px;
+  padding-top: 6px;
+  border-top: 1px dashed #e6e6e6;
+  color: #666;
+  font-size: 11px;
+}
+.slot-real b {
+  color: #c40000;
+  font-family: "Courier New", monospace;
+  font-weight: 700;
+  letter-spacing: .5px;
+}
+
+.slot-empty-tag {
+  display: block;
+  padding: 32px 0;
+  text-align: center;
+  color: #888;
+  font: 600 13px/1.4 Arial, "Microsoft YaHei", sans-serif;
+  letter-spacing: 2px;
+}
+
+.slot-actions {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+  padding: 8px 10px;
+  border-top: 1px solid #e6e6e6;
+  background: #fafcfd;
+}
+.slot-actions .btn-primary,
+.slot-actions .btn-ghost {
+  flex: 0 0 auto;
+  min-height: 28px !important;
+  padding: 4px 12px !important;
+  font: 700 12px Arial, "Microsoft YaHei", sans-serif !important;
+  border-radius: 2px !important;
+}
+.slot-actions .btn-primary {
+  background: linear-gradient(#d90000, #b00000) !important;
+  border: 1px solid #800000 !important;
+  color: #fff !important;
+  box-shadow: 0 1px 0 rgba(0,0,0,.1) !important;
+}
+.slot-actions .btn-primary:hover {
+  background: linear-gradient(#e63c3c, #c00000) !important;
+}
+.slot-actions .btn-ghost {
+  background: linear-gradient(#fff, #e7e7e7) !important;
+  border: 1px solid #a8b0b5 !important;
+  color: #111 !important;
+}
+.slot-actions .btn-ghost:hover {
+  background: linear-gradient(#fafafa, #d8d8d8) !important;
+}
+.slot-actions .btn-ghost[disabled] {
+  background: #f2f3f4 !important;
+  border-color: #d5dee3 !important;
+  color: #aaa !important;
+  cursor: not-allowed;
+}
+.slot-note {
+  color: #777;
+  font-size: 11px;
+  font-style: italic;
+}
+
+#screen-saveload .sl-header-right .btn-ghost {
+  min-height: 28px !important;
+  padding: 4px 12px !important;
+  font: 700 12px Arial, "Microsoft YaHei", sans-serif !important;
+  border-radius: 2px !important;
+  background: linear-gradient(#fff, #e7e7e7) !important;
+  border: 1px solid #a8b0b5 !important;
+  color: #111 !important;
+}
+
+@media (max-width: 760px) {
+  #screen-saveload.active .sl-panel { margin: 12px 8px; }
+  #screen-saveload .sl-grid { grid-template-columns: 1fr; gap: 8px; padding: 10px; }
+  .slot-card { min-height: 0; }
+  .slot-meta { grid-template-columns: 56px 1fr; }
+  .slot-actions { flex-wrap: wrap; }
+  .slot-actions .btn-primary,
+  .slot-actions .btn-ghost { flex: 1 1 auto; }
 }

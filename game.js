@@ -583,36 +583,286 @@ function showAchievements(){
   showModal("已解锁成就", html);
 }
 
-/* ---------- 存档 ---------- */
+/* ---------- 存档系统 ---------- */
+const SLOTS_KEY = "avara_backbone_slots_v1";
+const SLOT_COUNT = 10;
+let _slMode = "save";       // "save" | "load"
+let _slReturnTo = null;     // 关闭存档页时返回哪个 screen id
+
 function autoSave(){
-  try { localStorage.setItem(SAVE_KEY, JSON.stringify(S)); } catch(e){}
+  try { localStorage.setItem(SAVE_KEY, JSON.stringify(buildSnapshotState())); } catch(e){}
 }
-function saveGame(){
-  autoSave();
-  toast("已存档（自动）");
+
+function buildSnapshotState(){
+  // 简单深拷贝，避免之后修改 S 影响存档
+  try { return JSON.parse(JSON.stringify(S)); } catch(e){ return S; }
 }
-function loadGame(){
+
+function buildSlotMeta(){
+  const yearData = (typeof CONTENT !== "undefined" && CONTENT.years) ? CONTENT.years[S.yearIdx] : null;
+  const yr = yearData?.year || 2018;
+  const ev = yearData?.events?.[S.eventIdx];
+  const month = ev?.month;
+  const gameDate = month ? `${yr}-${String(month).padStart(2,"0")}` : `${yr}`;
+  let phase = "进行中";
+  if (S.ending) phase = "已结局：" + S.ending;
+  else if (S.epiIdx > 0) phase = "尾声章";
+  else if (S.finaleIdx > 0 || (CONTENT.years && S.yearIdx >= CONTENT.years.length)) phase = "终章";
+  return {
+    savedAt: new Date().toISOString(),
+    gameDate,
+    playerName: S.player?.name || "—",
+    playerEn: S.player?.enName || "",
+    grade: S.player?.grade || "—",
+    legend: S.player?.legend || 0,
+    money: Math.round(S.player?.money || 0),
+    phase,
+  };
+}
+
+function readSlots(){
+  try {
+    const raw = localStorage.getItem(SLOTS_KEY);
+    const arr = raw ? JSON.parse(raw) : [];
+    while (arr.length < SLOT_COUNT) arr.push(null);
+    return arr.slice(0, SLOT_COUNT);
+  } catch(e){ return new Array(SLOT_COUNT).fill(null); }
+}
+
+function writeSlots(arr){
+  try { localStorage.setItem(SLOTS_KEY, JSON.stringify(arr)); } catch(e){}
+}
+
+function readAutoSlot(){
   try {
     const raw = localStorage.getItem(SAVE_KEY);
-    if (!raw){ toast("没有可读取的存档"); return; }
-    S = JSON.parse(raw);
+    if (!raw) return null;
+    const st = JSON.parse(raw);
+    return st;
+  } catch(e){ return null; }
+}
+
+function autoSlotMetaFromState(st){
+  const yearData = (typeof CONTENT !== "undefined" && CONTENT.years) ? CONTENT.years[st.yearIdx] : null;
+  const yr = yearData?.year || 2018;
+  const ev = yearData?.events?.[st.eventIdx];
+  const month = ev?.month;
+  return {
+    gameDate: month ? `${yr}-${String(month).padStart(2,"0")}` : `${yr}`,
+    playerName: st.player?.name || "—",
+    playerEn: st.player?.enName || "",
+    grade: st.player?.grade || "—",
+    legend: st.player?.legend || 0,
+    money: Math.round(st.player?.money || 0),
+  };
+}
+
+function _slEscape(s){
+  return String(s == null ? "" : s).replace(/[&<>"']/g, c => ({
+    "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"
+  }[c]));
+}
+
+function _slRealTime(iso){
+  if (!iso) return "—";
+  try {
+    const d = new Date(iso);
+    const y = d.getFullYear();
+    const m = String(d.getMonth()+1).padStart(2,"0");
+    const dd = String(d.getDate()).padStart(2,"0");
+    const hh = String(d.getHours()).padStart(2,"0");
+    const mi = String(d.getMinutes()).padStart(2,"0");
+    return `${y}-${m}-${dd} ${hh}:${mi}`;
+  } catch(e){ return "—"; }
+}
+
+function _activeScreenId(){
+  const el = document.querySelector(".screen.active");
+  return el ? el.id : null;
+}
+
+function _hasInGameState(){
+  // 角色已创建且未进入终章/结局 → 视为"游戏中"
+  return !!(S && S.player && S.player.name && !S.ending);
+}
+
+/* 打开存档/读档屏 */
+function openSaveScreen(mode){
+  _slMode = mode === "load" ? "load" : "save";
+  _slReturnTo = _activeScreenId() || "screen-title";
+  goto("screen-saveload");
+  renderSlotList();
+}
+function closeSaveScreen(){
+  goto(_slReturnTo || "screen-title");
+}
+
+function saveGame(){
+  if (!_hasInGameState()){ toast("当前没有可保存的游戏进度"); return; }
+  openSaveScreen("save");
+}
+function loadGame(){ openSaveScreen("load"); }
+
+function renderSlotList(){
+  const isSave = _slMode === "save";
+  document.getElementById("sl-title").textContent = isSave ? "存档管理 · 保存进度" : "存档管理 · 读取进度";
+  document.getElementById("sl-sub").textContent = isSave
+    ? "选择一个存档位保存当前进度（已有存档将被覆盖）"
+    : "选择一个存档位读取游戏进度";
+
+  const wrap = document.getElementById("slot-list");
+  const slots = readSlots();
+  let html = "";
+
+  // 自动存档卡（始终在最上）
+  const auto = readAutoSlot();
+  html += renderAutoCardHtml(auto, isSave);
+
+  // 10 个手动存档位
+  slots.forEach((slot, i) => { html += renderSlotCardHtml(slot, i, isSave); });
+
+  wrap.innerHTML = html;
+}
+
+function renderAutoCardHtml(state, isSave){
+  if (!state){
+    return `
+      <article class="slot-card slot-auto slot-empty">
+        <header class="slot-head">
+          <span class="slot-no">AUTO</span>
+          <span class="slot-tag">自动存档</span>
+        </header>
+        <div class="slot-body"><span class="slot-empty-tag">— 暂无自动存档 —</span></div>
+        <footer class="slot-actions"></footer>
+      </article>`;
+  }
+  const meta = autoSlotMetaFromState(state);
+  const acts = isSave
+    ? `<span class="slot-note">每次事件结束自动写入，此位不可手动保存</span>`
+    : `<button class="btn-primary" onclick="doLoadAuto()">读取自动存档</button>`;
+  return `
+    <article class="slot-card slot-auto">
+      <header class="slot-head">
+        <span class="slot-no">AUTO</span>
+        <span class="slot-tag">自动存档</span>
+      </header>
+      <div class="slot-body">
+        <div class="slot-name">${_slEscape(meta.playerName)} <span class="slot-en">${_slEscape(meta.playerEn)}</span></div>
+        <dl class="slot-meta">
+          <dt>游戏时间</dt><dd>${_slEscape(meta.gameDate)}</dd>
+          <dt>职级</dt><dd>${_slEscape(meta.grade)}</dd>
+          <dt>传奇分</dt><dd>${_slEscape(meta.legend)}</dd>
+          <dt>金钱</dt><dd>¥${_slEscape(meta.money)}w</dd>
+        </dl>
+      </div>
+      <footer class="slot-actions">${acts}</footer>
+    </article>`;
+}
+
+function renderSlotCardHtml(slot, idx, isSave){
+  const no = String(idx+1).padStart(2,"0");
+  if (!slot){
+    return `
+      <article class="slot-card slot-empty">
+        <header class="slot-head">
+          <span class="slot-no">SLOT ${no}</span>
+          <span class="slot-tag">空</span>
+        </header>
+        <div class="slot-body"><span class="slot-empty-tag">— 空存档位 —</span></div>
+        <footer class="slot-actions">
+          ${isSave
+            ? `<button class="btn-primary" onclick="doSaveToSlot(${idx})">存档到此位</button>`
+            : `<button class="btn-ghost" disabled>无可读档</button>`}
+        </footer>
+      </article>`;
+  }
+  const m = slot.meta || {};
+  const realTime = _slRealTime(m.savedAt);
+  const acts = isSave
+    ? `<button class="btn-primary" onclick="doSaveToSlot(${idx})">覆盖此存档</button>
+       <button class="btn-ghost" onclick="doDeleteSlot(${idx})">删除</button>`
+    : `<button class="btn-primary" onclick="doLoadFromSlot(${idx})">读取</button>
+       <button class="btn-ghost" onclick="doDeleteSlot(${idx})">删除</button>`;
+  return `
+    <article class="slot-card">
+      <header class="slot-head">
+        <span class="slot-no">SLOT ${no}</span>
+        <span class="slot-tag">${_slEscape(m.phase || "进行中")}</span>
+      </header>
+      <div class="slot-body">
+        <div class="slot-name">${_slEscape(m.playerName)} <span class="slot-en">${_slEscape(m.playerEn)}</span></div>
+        <dl class="slot-meta">
+          <dt>游戏时间</dt><dd>${_slEscape(m.gameDate)}</dd>
+          <dt>职级</dt><dd>${_slEscape(m.grade)}</dd>
+          <dt>传奇分</dt><dd>${_slEscape(m.legend)}</dd>
+          <dt>金钱</dt><dd>¥${_slEscape(m.money)}w</dd>
+        </dl>
+        <div class="slot-real">实际存档时间：<b>${realTime}</b></div>
+      </div>
+      <footer class="slot-actions">${acts}</footer>
+    </article>`;
+}
+
+function doSaveToSlot(idx){
+  if (!_hasInGameState()){ toast("当前没有可保存的游戏进度"); return; }
+  const slots = readSlots();
+  const existed = !!slots[idx];
+  if (existed && !confirm(`SLOT ${String(idx+1).padStart(2,"0")} 已有存档，覆盖？`)) return;
+  slots[idx] = {
+    meta: buildSlotMeta(),
+    state: buildSnapshotState(),
+  };
+  writeSlots(slots);
+  toast(`已${existed?"覆盖":"保存"}到 SLOT ${String(idx+1).padStart(2,"0")}`);
+  renderSlotList();
+}
+
+function doDeleteSlot(idx){
+  const slots = readSlots();
+  if (!slots[idx]) return;
+  if (!confirm(`确认删除 SLOT ${String(idx+1).padStart(2,"0")} 存档？`)) return;
+  slots[idx] = null;
+  writeSlots(slots);
+  toast(`已删除 SLOT ${String(idx+1).padStart(2,"0")}`);
+  renderSlotList();
+}
+
+function doLoadFromSlot(idx){
+  const slots = readSlots();
+  const slot = slots[idx];
+  if (!slot || !slot.state){ toast("此位无存档"); return; }
+  _applyLoadedState(slot.state, `SLOT ${String(idx+1).padStart(2,"0")}`);
+}
+
+function doLoadAuto(){
+  const st = readAutoSlot();
+  if (!st){ toast("没有自动存档"); return; }
+  _applyLoadedState(st, "自动存档");
+}
+
+function _applyLoadedState(state, label){
+  try {
+    S = JSON.parse(JSON.stringify(state));
     if (!S.case) S.case = { monthly:{}, lowStreak:0 };
     if (CONTENT.injectMonthlyCases) CONTENT.injectMonthlyCases(S.caseSeed || 1);
+    // 同步写入 autosave 槽，使后续 autoSave 链路正常
+    try { localStorage.setItem(SAVE_KEY, JSON.stringify(S)); } catch(e){}
     // 路由到合适的屏
-    if (S.ending){ renderEnding(S.ending); return; }
+    if (S.ending){ renderEnding(S.ending); toast(`已读取 ${label}`); return; }
     if (S.epiIdx > 0 || (S.finaleIdx >= CONTENT.finale.beats.length && S.ending == null)){
-      // 在尾声中
       goto("screen-epilogue");
       renderEpiStep();
+      toast(`已读取 ${label}`);
       return;
     }
     if (S.finaleIdx > 0 || S.yearIdx >= CONTENT.years.length){
       finaleEnter();
+      toast(`已读取 ${label}`);
       return;
     }
     goto("screen-game");
     renderTopBar(); renderSidebar(); renderEvent();
-    toast("存档已读取");
+    toast(`已读取 ${label}`);
   } catch(e){
     toast("存档损坏，已忽略");
   }
