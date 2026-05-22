@@ -440,6 +440,24 @@ function renderSidebar(){
     li.innerHTML = line;
     lg.appendChild(li);
   });
+
+  renderNewsBox();
+}
+
+function renderNewsBox(){
+  const list = document.getElementById("news-list");
+  const monthEl = document.getElementById("news-month");
+  if (!list || typeof getNewsForMonth !== "function") return;
+  const yearData = CONTENT.years[S.yearIdx];
+  const yr = yearData?.year || 2018;
+  const ev = yearData?.events?.[S.eventIdx];
+  const mo = ev?.month || 1;
+  if (monthEl) monthEl.textContent = `${yr}-${String(mo).padStart(2, "0")}`;
+  const items = getNewsForMonth(yr, mo);
+  list.innerHTML = items.map(n => {
+    const scope = n.scope ? `<span class="news-tag news-tag-${n.scope}">${_slEscape(n.scope)}</span>` : "";
+    return `<li><a href="${n.u}" target="_blank" rel="noopener noreferrer">${scope}<span class="news-title">${_slEscape(n.t)}</span></a></li>`;
+  }).join("");
 }
 
 /* ---------- 把 body 数组渲染成 HTML ---------- */

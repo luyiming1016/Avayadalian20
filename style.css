@@ -1028,7 +1028,7 @@ input { font-family: inherit; }
   align-items: center;
   gap: 8px;
   margin: 0;
-  padding: 2px 8px 2px 220px !important;
+  padding: 2px 8px 2px 12px !important;
   border: 0 !important;
   border-bottom: 1px solid #b60000 !important;
   background: #d90000 !important;
@@ -3187,4 +3187,77 @@ input { font-family: inherit; }
   background: #f0f0f0;
   border-color: #d0d0d0;
   color: #888;
+}
+
+/* ============================================================
+ * 当月新闻简报 · 左栏
+ * ============================================================ */
+#screen-game .news-block {
+  margin-top: 12px;
+  padding-top: 0;
+  border-top: 1px solid #c9c9c9;
+}
+#screen-game .news-block h4 {
+  margin: 0 0 6px !important;
+  padding: 2px 5px;
+  background: #4a9bb1;
+  color: #fff !important;
+  font: 700 12px/15px Arial, "Microsoft YaHei", sans-serif !important;
+  letter-spacing: 0 !important;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+#screen-game .news-block .news-month {
+  font: 400 11px/1 Arial, "Microsoft YaHei", sans-serif !important;
+  color: #ffe6cc;
+  letter-spacing: .04em;
+}
+#screen-game .news-list {
+  list-style: none;
+  padding: 4px 6px 8px;
+  margin: 0;
+  background: #ffffff;
+  border: 1px solid #e1e4ea;
+}
+#screen-game .news-list li {
+  padding: 6px 0;
+  border-bottom: 1px dashed #e6e9ee;
+  font: 400 12px/1.45 Arial, "Microsoft YaHei", sans-serif;
+}
+#screen-game .news-list li:last-child { border-bottom: 0; }
+#screen-game .news-list a {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  color: #1a3d70;
+  text-decoration: none;
+}
+#screen-game .news-list a:hover .news-title {
+  color: #d90000;
+  text-decoration: underline;
+}
+#screen-game .news-list .news-tag {
+  flex: 0 0 auto;
+  margin-top: 1px;
+  padding: 1px 5px;
+  font: 700 10px/1.4 Arial, "Microsoft YaHei", sans-serif;
+  letter-spacing: .02em;
+  color: #fff;
+  background: #7b8694;
+  border-radius: 0;
+}
+#screen-game .news-list .news-tag-国内   { background: #d90000; }
+#screen-game .news-list .news-tag-国际   { background: #1a3d70; }
+#screen-game .news-list .news-tag-科技   { background: #2f7a8e; }
+#screen-game .news-list .news-tag-百科   { background: #6b6b6b; }
+#screen-game .news-list .news-tag-WIKI   { background: #6b6b6b; }
+#screen-game .news-list .news-title {
+  flex: 1 1 auto;
+  color: inherit;
+  word-break: break-word;
+}
+@media (max-width: 760px) {
+  #screen-game .news-block { margin-top: 10px; }
+  #screen-game .news-list li { font-size: 12px; padding: 5px 0; }
 }
