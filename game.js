@@ -41,6 +41,21 @@ const SKILL_CATALOG = {
   UC: ["CM&MG","SMGR&SM","AADS&AAWG","Endpoint","CS1K","SBC","Messaging"],
   CC: ["AES","WFO","ACR","CMS","ACCCM","Oceana"]
 };
+const SKILL_DESC = {
+  "CM&MG":     "Communication Manager + Media Gateway。Aura 的呼叫处理核心（CM）与硬件中继网关（G430 / G450 / G650），承担拨号计划、特性激活、PSTN / 数字中继接入。",
+  "SMGR&SM":   "System Manager + Session Manager。SMGR 是 Aura 的统一 Web 管理控制台，SM 是 SIP 会话路由核心，处理拨号模式、路由策略、注册与多 CM 联邦。",
+  "AADS&AAWG": "Aura Device Services + Aura Web Gateway。AADS 为 SIP 终端（96x1 / J 系列 / Workplace）下发配置；AAWG 把 WebRTC / HTTP 客户端桥接到 SIP 网络。",
+  "Endpoint":  "Avaya 终端家族：9608/9611/J139/J169/J179 桌机、B179 会议机、Workplace 软客户端。覆盖固件升级、注册、TLS / 证书、音质排障。",
+  "CS1K":      "Communication Server 1000（前身 Nortel Meridian / CS1000）。传统 UNIStim / SIP 混合 PBX，APAC 老客户多，常需割接到 Aura。",
+  "SBC":       "Avaya Session Border Controller for Enterprise（SBCE）。SIP 网络边界安全，承担 NAT 穿越、SIP 防火墙、消息规范化、Remote Worker 加密接入。",
+  "Messaging": "Avaya Aura Messaging / Modular Messaging。语音邮箱与统一消息平台，提供 MWI、TUI、Outlook 集成与归档。",
+  "AES":       "Application Enablement Services。把 CM 电话能力以 TSAPI / JTAPI / DMCC 暴露给 CTI 应用（座席桌面、录音、IVR）。",
+  "WFO":       "Workforce Optimization 套件。覆盖通话录音、质检评分、座席排班、屏幕监控与培训管理。",
+  "ACR":       "Avaya Contact Recorder。面向合规和质检的通话 / 屏幕录音平台，支持 SIPREC、DMCC、Service Observe 多种采集方式。",
+  "CMS":       "Call Management System。Contact Center 的实时与历史报表引擎（VDN / Skill / Agent / Trunk），驱动 Supervisor 大屏与运营 KPI。",
+  "ACCCM":     "Avaya Contact Center Control Manager。集中编排和配置多套 CC 组件，承担多租户、变更管理与跨系统同步。",
+  "Oceana":    "Avaya Oceana / Avaya Experience Platform 前身。原生全渠道联络中心（语音 / 邮件 / 聊天 / 社交），基于微服务架构。"
+};
 // 每跨过一个阈值（累计 SR 成功得分）解锁一个新技能
 const SKILL_UNLOCK_THRESHOLDS = [3, 7, 12, 18, 25, 33, 42, 52, 63, 75, 88];
 
@@ -49,6 +64,52 @@ function skillCategoryOf(skill){
   if (SKILL_CATALOG.CC.indexOf(skill) >= 0) return "CC";
   return null;
 }
+function ensureSkillTipEl(){
+  let el = document.getElementById("skill-tip");
+  if (el) return el;
+  el = document.createElement("div");
+  el.id = "skill-tip";
+  el.setAttribute("role", "tooltip");
+  document.body.appendChild(el);
+  return el;
+}
+function showSkillTip(target){
+  const skill = target.textContent.trim();
+  const desc = SKILL_DESC[skill];
+  if (!desc) return;
+  const el = ensureSkillTipEl();
+  el.innerHTML = `<span class="stip-head">${_slEscape(skill)}</span>${_slEscape(desc)}`;
+  // 临时显示以测量尺寸
+  el.style.left = "-9999px";
+  el.style.top = "-9999px";
+  el.classList.add("show");
+  const r = target.getBoundingClientRect();
+  const tipW = el.offsetWidth;
+  const tipH = el.offsetHeight;
+  const margin = 8;
+  let left = r.left;
+  let top = r.bottom + 6;
+  if (left + tipW + margin > window.innerWidth) left = window.innerWidth - tipW - margin;
+  if (left < margin) left = margin;
+  if (top + tipH + margin > window.innerHeight) top = r.top - tipH - 6;
+  if (top < margin) top = margin;
+  el.style.left = left + "px";
+  el.style.top  = top + "px";
+}
+function hideSkillTip(){
+  const el = document.getElementById("skill-tip");
+  if (el) el.classList.remove("show");
+}
+document.addEventListener("mouseover", e => {
+  const t = e.target.closest && e.target.closest(".pc-skill[data-tip]");
+  if (t) showSkillTip(t);
+});
+document.addEventListener("mouseout", e => {
+  const t = e.target.closest && e.target.closest(".pc-skill[data-tip]");
+  if (t) hideSkillTip();
+});
+window.addEventListener("scroll", hideSkillTip, true);
+
 function maybeUnlockSkill(scoreDelta){
   if (!S || !S.player) return;
   if (typeof scoreDelta !== "number" || scoreDelta <= 0) return;
@@ -365,7 +426,9 @@ function renderPlayerCard(){
         const cls = cat === "CC" ? "pc-skill pc-skill-cc"
                   : cat === "UC" ? "pc-skill pc-skill-uc"
                   : "pc-skill";
-        return `<span class="${cls}">${_slEscape(s)}</span>`;
+        const desc = SKILL_DESC[s] || "";
+        const tipAttr = desc ? ` data-tip="${_slEscape(desc)}" title="${_slEscape(desc)}"` : "";
+        return `<span class="${cls}"${tipAttr}>${_slEscape(s)}</span>`;
       }).join("")
     : `<span class="pc-skill pc-skill-empty">—</span>`;
   const skillProg = p.skillProgress || 0;

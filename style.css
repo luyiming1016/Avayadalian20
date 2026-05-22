@@ -3189,6 +3189,38 @@ input { font-family: inherit; }
   color: #888;
 }
 
+/* Skill chip 悬停产品简介 */
+#screen-game .pc-skill[data-tip] { cursor: help; }
+#skill-tip {
+  position: fixed;
+  z-index: 9999;
+  max-width: 320px;
+  padding: 9px 11px;
+  background: #1f2a37;
+  color: #f3f5f8;
+  font: 400 12px/1.55 Arial, "Microsoft YaHei", sans-serif;
+  letter-spacing: 0;
+  border: 1px solid #0c1320;
+  box-shadow: 0 8px 18px rgba(0,0,0,.32);
+  white-space: normal;
+  text-align: left;
+  pointer-events: none;
+  opacity: 0;
+  transform: translateY(-4px);
+  transition: opacity .12s ease, transform .12s ease;
+}
+#skill-tip.show { opacity: 1; transform: translateY(0); }
+#skill-tip .stip-head {
+  display: block;
+  font: 700 12px/1.2 Arial, "Microsoft YaHei", sans-serif;
+  color: #fff;
+  margin-bottom: 4px;
+  letter-spacing: .02em;
+}
+@media (max-width: 760px) {
+  #skill-tip { max-width: 240px; font-size: 11px; }
+}
+
 /* ============================================================
  * 当月新闻简报 · 左栏
  * ============================================================ */
