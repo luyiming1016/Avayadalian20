@@ -276,6 +276,9 @@
       <button class="tb-btn tb-btn-housing" onclick="openHousing()" title="打开贝壳大连楼市">
         <span class="tb-btn-ico">🏠</span><span class="tb-btn-txt">楼市</span>
       </button>
+      <button class="tb-btn tb-btn-vehicle" onclick="openVehicleMarket()" title="打开大连车市 / 新车 / 二手车 / 摩托车">
+        <span class="tb-btn-ico">🚗</span><span class="tb-btn-txt">车市</span>
+      </button>
       <button class="tb-btn tb-btn-assets" onclick="openAssets()" title="查看持有资产 / 切换自住 / 装修 / 卖出">
         <span class="tb-btn-ico">📁</span><span class="tb-btn-txt">资产</span>
       </button>
@@ -522,13 +525,88 @@
   </div>
 </section>
 
+<!-- ============= 车市 ============= -->
+<section id="screen-vehicle" class="screen">
+  <div class="housing-panel vehicle-panel">
+    <header class="housing-header vehicle-header">
+      <div class="housing-header-left">
+        <h2><span class="bk-logo">AUTO</span>大连车市 · <span id="vh-year">2018</span></h2>
+        <p class="housing-sub">新车 / 二手车 / 摩托车 · 500 款真实车型 · 可选配置与贷款期数</p>
+      </div>
+      <div class="housing-header-right">
+        <div class="housing-money">
+          <span class="hm-lbl">手头资金</span>
+          <b id="vh-money">¥ 12 w</b>
+        </div>
+        <button class="btn-ghost" onclick="closeVehicleMarket()">← 返回</button>
+      </div>
+    </header>
+
+    <div class="housing-status" id="vh-status">
+      <span class="hs-tag">当前座驾</span>
+      <span id="vh-ride">未购车</span>
+      <span class="hs-result-count" id="vh-count">—</span>
+    </div>
+
+    <div class="housing-filters vehicle-filters">
+      <div class="hs-filter-row">
+        <span class="hs-filter-lbl">类型</span>
+        <div class="opt-group hs-tabs" id="vh-tabs">
+          <button class="opt active" data-v="all">全部</button>
+          <button class="opt" data-v="new">新车</button>
+          <button class="opt" data-v="used">二手车</button>
+        </div>
+      </div>
+      <div class="hs-filter-row">
+        <span class="hs-filter-lbl">车身</span>
+        <div class="opt-group hs-dist" id="vh-body">
+          <button class="opt active" data-v="all">全部车身</button>
+        </div>
+      </div>
+      <div class="hs-filter-row">
+        <span class="hs-filter-lbl">价格</span>
+        <div class="opt-group hs-price" id="vh-price">
+          <button class="opt active" data-v="all">全部</button>
+          <button class="opt" data-v="<8">8 万以下</button>
+          <button class="opt" data-v="8-15">8–15 万</button>
+          <button class="opt" data-v="15-30">15–30 万</button>
+          <button class="opt" data-v="30-60">30–60 万</button>
+          <button class="opt" data-v="60+">60 万+</button>
+        </div>
+      </div>
+      <div class="hs-filter-row">
+        <span class="hs-filter-lbl">品牌</span>
+        <div class="opt-group hs-dist" id="vh-brand">
+          <button class="opt active" data-v="all">全部品牌</button>
+        </div>
+      </div>
+      <div class="hs-filter-row hs-sort-row">
+        <span class="hs-filter-lbl">排序</span>
+        <div class="opt-group hs-sort" id="vh-sort">
+          <button class="opt active" data-v="default">默认</button>
+          <button class="opt" data-v="priceAsc">价格 ↑</button>
+          <button class="opt" data-v="priceDesc">价格 ↓</button>
+          <button class="opt" data-v="hpDesc">动力 ↓</button>
+          <button class="opt" data-v="ageAsc">车龄 ↑</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="housing-grid vehicle-grid" id="vh-grid"></div>
+  </div>
+
+  <div id="vh-modal" class="hs-modal hidden">
+    <div class="hs-modal-card vh-modal-card" id="vh-modal-card"></div>
+  </div>
+</section>
+
 <!-- ============= 资产 · 房产管理 ============= -->
 <section id="screen-assets" class="screen">
   <div class="assets-panel">
     <header class="assets-header">
       <div class="assets-header-left">
         <h2>我的资产 · <span id="as-year">2018</span></h2>
-        <p class="assets-sub">所有持有房产 · 切换自住 / 装修 / 卖出变现</p>
+        <p class="assets-sub">所有持有房产与车辆 · 切换自住 / 当前座驾 / 装修 / 卖出变现</p>
       </div>
       <div class="assets-header-right">
         <div class="housing-money">
@@ -558,6 +636,8 @@
 <script src="content.js"></script>
 <script src="news.js"></script>
 <script src="housing.js"></script>
+<script src="vehicle.js"></script>
+<script src="vehicle-images.js"></script>
 <script src="game.js"></script>
 </body>
 </html>

@@ -21,6 +21,7 @@ const DEFAULT_STATE = () => ({
     avatar:null,
     salary:10000,
     houses:[],         // 多套房产：[{uid, propId, name, district, address, area, rooms, buyYear, totalPrice, payment, loan, renovation, isPrimary}]
+    vehicles:[],       // 多辆车：[{uid, vehicleId, title, buyYear, buyMonth, totalPrice, payment, loan, isActive}]
     lastTickKey:null,  // 上次结算的 YYYY-MM
     flags:{}
   },
@@ -184,6 +185,21 @@ function liveText(p){
   return m[p.live] || "—";
 }
 
+function getActiveVehicle(){
+  const vehicles = (S && S.player && S.player.vehicles) || [];
+  return vehicles.find(v => v.isActive) || vehicles[0] || null;
+}
+function vehicleText(p){
+  if (!p) return "—";
+  const vehicles = p.vehicles || [];
+  const active = vehicles.find(v => v.isActive) || vehicles[0];
+  if (!active) return "未购车";
+  const loanActive = active.payment === "loan" && active.loan && (active.loan.paidMonths || 0) < active.loan.months;
+  const loanTag = loanActive ? " · 车贷中" : (active.payment === "loan" ? " · 已还清" : " · 全款");
+  const more = vehicles.length > 1 ? `（共 ${vehicles.length} 辆）` : "";
+  return `${active.title || active.name || "当前座驾"}${loanTag}${more}`;
+}
+
 /* 估算贷款剩余本金（卖房用） */
 function remainingLoanPrincipal(loan){
   if (!loan) return 0;
@@ -265,6 +281,18 @@ function _doSingleMonthTick(y, m){
     ln.paidPrincipal = (ln.paidPrincipal || 0) + (ln.principal / ln.months);
     if (ln.paidMonths >= ln.months){
       S.log.push(`🏦 ${y}-${String(m).padStart(2,"0")} ${h.name} 房贷已全部还清！`);
+    }
+  });
+  // 扣所有未还清的车贷
+  (p.vehicles || []).forEach(v => {
+    if (v.payment !== "loan" || !v.loan) return;
+    const ln = v.loan;
+    if (ln.paidMonths >= ln.months) return;
+    const due = ln.monthly || vehicleLoanMonthly(ln.principal, ln.annualRate || 0.045, ln.months);
+    p.money = (p.money || 0) - due / 10000;
+    ln.paidMonths += 1;
+    if (ln.paidMonths >= ln.months){
+      S.log.push(`🚗 ${y}-${String(m).padStart(2,"0")} ${v.title || "座驾"} 车贷已全部还清！`);
     }
   });
 }
@@ -529,6 +557,234 @@ function confirmPurchase(propId, mode){
   autoSave();
 }
 
+/* ---- 车市屏：列表 + 筛选 + 详情 + 买车 ---- */
+let _vhFilterCat = "all";
+let _vhFilterBrand = "all";
+let _vhFilterBody = "all";
+let _vhFilterPrice = "all";
+let _vhSort = "default";
+let _vhPageSize = 60;
+let _vhPage = 1;
+let _vhReturnTo = "screen-game";
+
+const VEHICLE_LOAN_RATE = 0.045;
+function vehicleDownRatio(item){
+  if (!item) return 0.30;
+  if (item.bodyType === "摩托车") return item.category === "new" ? 0.40 : 0.50;
+  return item.category === "new" ? 0.30 : 0.40;
+}
+
+function openVehicleMarket(){
+  if (!_hasInGameState()){ toast("当前没有可操作的游戏进度"); return; }
+  if (typeof VEHICLE_CATALOG === "undefined"){ toast("车市数据未加载"); return; }
+  _vhReturnTo = _activeScreenId() || "screen-game";
+  const brandWrap = document.getElementById("vh-brand");
+  if (brandWrap){
+    const brands = vehicleBrandList();
+    brandWrap.innerHTML = `<button class="opt active" data-v="all">全部品牌</button>` +
+      brands.map(b => `<button class="opt" data-v="${_slEscape(b)}">${_slEscape(b)}</button>`).join("");
+  }
+  const bodyWrap = document.getElementById("vh-body");
+  if (bodyWrap){
+    const bodies = vehicleBodyList();
+    bodyWrap.innerHTML = `<button class="opt active" data-v="all">全部车身</button>` +
+      bodies.map(b => `<button class="opt" data-v="${_slEscape(b)}">${_slEscape(b)}</button>`).join("");
+  }
+  goto("screen-vehicle");
+  renderVehicleScreen();
+}
+function closeVehicleMarket(){
+  _vhCloseModal();
+  const back = _vhReturnTo || "screen-game";
+  goto(back);
+  if (back === "screen-game"){
+    renderTopBar(); renderSidebar(); renderEvent();
+  }
+}
+
+function renderVehicleScreen(){
+  const [yr] = _currentGameYM();
+  const p = S.player;
+  const yEl = document.getElementById("vh-year");
+  const mEl = document.getElementById("vh-money");
+  const rEl = document.getElementById("vh-ride");
+  if (yEl) yEl.textContent = yr;
+  if (mEl) mEl.textContent = `¥ ${Math.round(p.money || 0)} w`;
+  if (rEl) rEl.textContent = vehicleText(p);
+  renderVehicleList();
+}
+
+function renderVehicleList(){
+  const [yr] = _currentGameYM();
+  const wrap = document.getElementById("vh-grid");
+  if (!wrap) return;
+  let list = VEHICLE_CATALOG.slice();
+  if (_vhFilterCat !== "all") list = list.filter(x => x.category === _vhFilterCat);
+  if (_vhFilterBrand !== "all") list = list.filter(x => x.brand === _vhFilterBrand);
+  if (_vhFilterBody !== "all") list = list.filter(x => x.bodyType === _vhFilterBody);
+  if (_vhFilterPrice !== "all") list = list.filter(x => vehiclePriceBucket(x, yr) === _vhFilterPrice);
+  if (_vhSort === "priceAsc") list.sort((a,b) => vehiclePriceOf(a,yr) - vehiclePriceOf(b,yr));
+  else if (_vhSort === "priceDesc") list.sort((a,b) => vehiclePriceOf(b,yr) - vehiclePriceOf(a,yr));
+  else if (_vhSort === "hpDesc") list.sort((a,b) => (b.hp||0) - (a.hp||0));
+  else if (_vhSort === "ageAsc") list.sort((a,b) => (a.age||0) - (b.age||0));
+
+  const totalCount = list.length;
+  const countEl = document.getElementById("vh-count");
+  if (countEl) countEl.textContent = `共 ${totalCount} 款`;
+  const end = Math.min(totalCount, _vhPage * _vhPageSize);
+  const shown = list.slice(0, end);
+  wrap.innerHTML = shown.map(item => {
+    const price = vehiclePriceOf(item, yr);
+    const tag = item.category === "new" ? "新车" : "二手车";
+    return `
+      <article class="vh-card vh-cat-${item.category}" onclick="renderVehicleDetail('${item.id}')">
+        <img class="vh-img" data-vehicle-id="${item.id}" loading="lazy" src="${vehicleImageSrc(item)}" alt="${_slEscape(item.title)}">
+        <header class="hs-card-head">
+          <span class="hs-cat-tag">${tag}</span>
+          <span class="hs-dist-tag">${_slEscape(item.bodyType)}</span>
+        </header>
+        <h3 class="hs-name">${_slEscape(item.title)}</h3>
+        <p class="hs-dev">${_slEscape(item.energy)} · ${item.hp} hp · 0-100 ${_slEscape(item.accel)}</p>
+        <div class="hs-row"><span>${_slEscape(item.color)}</span><span>${item.category === "used" ? `${item.age} 年 · ${Math.round(item.mileage/10000)} 万 km` : "可选配置"}</span></div>
+        <div class="hs-price">
+          <span class="hs-unit">${item.category === "new" ? "指导价" : item.condition}</span>
+          <span class="hs-total">约 <b>¥ ${Math.round(price/10000)} 万</b></span>
+        </div>
+      </article>`;
+  }).join("");
+  if (end < totalCount){
+    wrap.innerHTML += `<div class="hs-more"><button class="btn-ghost" onclick="_vhLoadMore()">加载更多（剩余 ${totalCount - end} 款）</button></div>`;
+  }
+  if (!totalCount) wrap.innerHTML = `<p class="hs-empty">没有符合条件的车型</p>`;
+  enhanceVehiclePhotos(wrap);
+}
+function _vhLoadMore(){ _vhPage += 1; renderVehicleList(); }
+
+function renderVehicleDetail(vehicleId){
+  const item = VEHICLE_CATALOG.find(x => x.id === vehicleId);
+  if (!item) return;
+  const [yr] = _currentGameYM();
+  const ownedCount = (S.player.vehicles || []).length;
+  const card = document.getElementById("vh-modal-card");
+  const tag = item.category === "new" ? "新车" : "二手车";
+  const trimHtml = (item.trims || []).map(trim => {
+    const price = vehiclePriceOf(item, yr, trim.id);
+    const downWan = price * vehicleDownRatio(item) / 10000;
+    const principal = price - Math.round(price * vehicleDownRatio(item));
+    const m24 = Math.round(vehicleLoanMonthly(principal, VEHICLE_LOAN_RATE, 24));
+    const m36 = Math.round(vehicleLoanMonthly(principal, VEHICLE_LOAN_RATE, 36));
+    const m60 = Math.round(vehicleLoanMonthly(principal, VEHICLE_LOAN_RATE, 60));
+    return `
+      <div class="vh-trim">
+        <div>
+          <b>${_slEscape(trim.name)}</b>
+          <span>¥ ${Math.round(price/10000)} 万</span>
+          <small>${(trim.features || []).map(_slEscape).join(" · ")}</small>
+        </div>
+        <div class="vh-buy-actions">
+          <button class="hs-pay-btn" onclick="confirmVehiclePurchase('${item.id}','${trim.id}','full',0)">全款</button>
+          <button class="hs-pay-btn" onclick="confirmVehiclePurchase('${item.id}','${trim.id}','loan',24)">24期 · ¥${m24.toLocaleString()}/月</button>
+          <button class="hs-pay-btn" onclick="confirmVehiclePurchase('${item.id}','${trim.id}','loan',36)">36期 · ¥${m36.toLocaleString()}/月</button>
+          <button class="hs-pay-btn" onclick="confirmVehiclePurchase('${item.id}','${trim.id}','loan',60)">60期 · ¥${m60.toLocaleString()}/月</button>
+        </div>
+        <p class="hs-money-hint">贷款首付约 <b>¥ ${downWan.toFixed(1)} 万</b> · 年利率 ${(VEHICLE_LOAN_RATE*100).toFixed(2)}%</p>
+      </div>`;
+  }).join("");
+  card.innerHTML = `
+    <header class="hs-modal-head">
+      <div>
+        <span class="hs-cat-tag">${tag}</span>
+        <span class="hs-dist-tag">${_slEscape(item.bodyType)}</span>
+        <h2>${_slEscape(item.title)}</h2>
+        <p class="hs-modal-dev">${_slEscape(item.energy)} · ${item.hp} hp · 0-100 ${_slEscape(item.accel)}</p>
+      </div>
+      <button class="btn-icon hs-modal-close" onclick="_vhCloseModal()" title="关闭">✕</button>
+    </header>
+    <section class="hs-modal-body">
+      <img class="vh-modal-img" data-vehicle-id="${item.id}" loading="lazy" src="${vehicleImageSrc(item)}" alt="${_slEscape(item.title)}">
+      <dl class="hs-meta">
+        <dt>车身</dt><dd>${_slEscape(item.bodyType)}</dd>
+        <dt>能源</dt><dd>${_slEscape(item.energy)}</dd>
+        <dt>动力</dt><dd>${item.hp} hp · 0-100 ${_slEscape(item.accel)}</dd>
+        <dt>颜色</dt><dd>${_slEscape(item.color)}</dd>
+        ${item.category === "used" ? `<dt>车况</dt><dd>${_slEscape(item.condition)} · ${item.age} 年车龄 · ${item.mileage.toLocaleString()} km</dd>` : `<dt>配置</dt><dd>新车可选不同级别配置</dd>`}
+      </dl>
+      <div class="hs-note">你目前已持有 <b>${ownedCount}</b> 辆车 · 买入后可在 <a href="javascript:void(0)" onclick="_vhCloseModal();openAssets()">资产</a> 中设为当前座驾、卖出或继续持有。</div>
+      <h4 class="hs-pay-title">购买方式与配置</h4>
+      <div class="vh-trim-list">${trimHtml}</div>
+    </section>`;
+  document.getElementById("vh-modal").classList.remove("hidden");
+  enhanceVehiclePhotos(card);
+}
+
+function _vhCloseModal(){
+  const m = document.getElementById("vh-modal");
+  if (m) m.classList.add("hidden");
+}
+
+function confirmVehiclePurchase(vehicleId, trimId, mode, months){
+  const item = VEHICLE_CATALOG.find(x => x.id === vehicleId);
+  if (!item) return;
+  if (!Array.isArray(S.player.vehicles)) S.player.vehicles = [];
+  const [yr, mo] = _currentGameYM();
+  const trim = item.trims.find(t => t.id === trimId) || item.trims[0];
+  const total = vehiclePriceOf(item, yr, trim.id);
+  const downRatio = vehicleDownRatio(item);
+  let payNow = total / 10000;
+  let loan = null;
+  if (mode === "loan"){
+    payNow = Math.round(total * downRatio) / 10000;
+    const principal = total - Math.round(total * downRatio);
+    const monthly = Math.round(vehicleLoanMonthly(principal, VEHICLE_LOAN_RATE, months));
+    loan = { principal, annualRate:VEHICLE_LOAN_RATE, months, type:"equal", paidMonths:0, monthly };
+  }
+  if ((S.player.money || 0) < payNow){
+    showModal("资金不足", `本次需要 <b>¥ ${payNow.toFixed(1)} 万</b>，你目前只有 <b>¥ ${(S.player.money||0).toFixed(1)} 万</b>。`);
+    return;
+  }
+  if (!confirm(`确认${mode==="loan" ? "贷款" : "全款"}购买「${item.title} ${trim.name}」？\n将先扣除 ¥${payNow.toFixed(1)} 万。`)) return;
+  S.player.money -= payNow;
+  const isFirst = S.player.vehicles.length === 0;
+  S.player.vehicles.push({
+    uid:"vown" + Date.now().toString(36) + Math.floor(Math.random()*1000),
+    vehicleId:item.id,
+    title:item.title,
+    brand:item.brand, model:item.model, bodyType:item.bodyType, energy:item.energy,
+    hp:item.hp, accel:item.accel, color:item.color, features:trim.features || [],
+    category:item.category, trimId:trim.id, trimName:trim.name,
+    buyYear:yr, buyMonth:mo, totalPrice:total,
+    payment:mode === "loan" ? "loan" : "full",
+    loan,
+    isActive:isFirst
+  });
+  S.log.push(`🚗 ${yr}-${String(mo).padStart(2,"0")} 购入 ${item.title} ${trim.name}（${mode==="loan" ? `${months}期车贷` : "全款"} · ¥${Math.round(total/10000)} 万）${isFirst ? " · 设为当前座驾" : ""}`);
+  toast(`🚗 已购入 ${item.title}`);
+  _vhCloseModal();
+  renderVehicleScreen();
+  if (document.getElementById("player-card")) renderPlayerCard();
+  autoSave();
+}
+
+function _vhBindFilter(hostId, setter){
+  return (e) => {
+    const t = e.target;
+    if (!t || !t.dataset) return;
+    const host = t.closest && t.closest("#" + hostId);
+    if (host && t.classList.contains("opt")){
+      host.querySelectorAll(".opt").forEach(b => b.classList.remove("active"));
+      t.classList.add("active");
+      setter(t.dataset.v);
+      _vhPage = 1;
+      renderVehicleList();
+    }
+  };
+}
+document.addEventListener("click", _vhBindFilter("vh-tabs",  v => _vhFilterCat = v));
+document.addEventListener("click", _vhBindFilter("vh-brand", v => _vhFilterBrand = v));
+document.addEventListener("click", _vhBindFilter("vh-body",  v => _vhFilterBody = v));
+document.addEventListener("click", _vhBindFilter("vh-price", v => _vhFilterPrice = v));
+document.addEventListener("click", _vhBindFilter("vh-sort",  v => _vhSort = v));
+
 /* ============================================================
  *  资产屏：所有持有房产 + 自住切换 / 装修 / 卖出
  * ============================================================ */
@@ -549,33 +805,40 @@ function closeAssets(){
 
 function renderAssets(){
   const [yr] = _currentGameYM();
+  const [, mo] = _currentGameYM();
   const p = S.player;
   const houses = p.houses || [];
+  const vehicles = p.vehicles || [];
   document.getElementById("as-year").textContent = yr;
   document.getElementById("as-money").textContent = `¥ ${Math.round(p.money || 0)} w`;
 
   // 资产汇总
-  let totalValue = 0, totalLoan = 0;
+  let totalValue = 0, totalLoan = 0, vehicleValue = 0, vehicleLoan = 0;
   houses.forEach(h => {
     totalValue += houseCurrentValue(h, yr);
     if (h.payment === "loan" && h.loan) totalLoan += remainingLoanPrincipal(h.loan);
   });
-  const netAsset = (p.money || 0) * 10000 + totalValue - totalLoan;
+  vehicles.forEach(v => {
+    vehicleValue += vehicleCurrentValue(v, yr, mo);
+    if (v.payment === "loan" && v.loan) vehicleLoan += remainingLoanPrincipal(v.loan);
+  });
+  const netAsset = (p.money || 0) * 10000 + totalValue + vehicleValue - totalLoan - vehicleLoan;
   const sumEl = document.getElementById("as-summary");
   sumEl.innerHTML = `
-    <div class="as-sum-item"><span>持有套数</span><b>${houses.length}</b></div>
+    <div class="as-sum-item"><span>房产 / 车辆</span><b>${houses.length} 套 / ${vehicles.length} 辆</b></div>
     <div class="as-sum-item"><span>房产估值</span><b>¥ ${Math.round(totalValue/10000)} 万</b></div>
-    <div class="as-sum-item"><span>剩余贷款</span><b>¥ ${Math.round(totalLoan/10000)} 万</b></div>
+    <div class="as-sum-item"><span>车辆估值</span><b>¥ ${Math.round(vehicleValue/10000)} 万</b></div>
+    <div class="as-sum-item"><span>剩余贷款</span><b>¥ ${Math.round((totalLoan + vehicleLoan)/10000)} 万</b></div>
     <div class="as-sum-item as-sum-net"><span>净资产</span><b>¥ ${Math.round(netAsset/10000)} 万</b></div>
   `;
 
   const wrap = document.getElementById("as-list");
-  if (!houses.length){
-    wrap.innerHTML = `<p class="as-empty">你还没有持有任何房产。<button class="btn-primary" onclick="closeAssets();openHousing()">去贝壳大连看房 →</button></p>`;
+  if (!houses.length && !vehicles.length){
+    wrap.innerHTML = `<p class="as-empty">你还没有持有任何大件资产。<button class="btn-primary" onclick="closeAssets();openHousing()">去贝壳大连看房 →</button><button class="btn-primary" onclick="closeAssets();openVehicleMarket()">去车市看车 →</button></p>`;
     return;
   }
 
-  wrap.innerHTML = houses.map(h => {
+  const houseHtml = houses.map(h => {
     const value = houseCurrentValue(h, yr);
     const valueWan = Math.round(value / 10000);
     const remain = (h.payment === "loan" && h.loan) ? remainingLoanPrincipal(h.loan) : 0;
@@ -618,6 +881,52 @@ function renderAssets(){
             : `<button class="btn-ghost" disabled>装修已满级</button>`}
           <button class="btn-ghost as-sell" onclick="sellHouse('${h.uid}')">卖出</button>
           ${loanActive ? `<span class="as-warn-tag">⚠ 贷款未结清</span>` : ""}
+        </footer>
+      </article>
+    `;
+  }).join("");
+  wrap.innerHTML = houseHtml + renderVehicleAssets(vehicles, yr, mo);
+  enhanceVehiclePhotos(wrap);
+}
+
+function renderVehicleAssets(vehicles, yr, mo){
+  if (!vehicles.length){
+    return `<article class="as-card as-card-vehicle as-card-empty"><p>还没有持有车辆。</p><button class="btn-primary" onclick="closeAssets();openVehicleMarket()">去车市看车 →</button></article>`;
+  }
+  return vehicles.map(v => {
+    const value = vehicleCurrentValue(v, yr, mo);
+    const remain = (v.payment === "loan" && v.loan) ? remainingLoanPrincipal(v.loan) : 0;
+    const valueWan = Math.round(value / 10000);
+    const buyWan = Math.round((v.totalPrice || 0) / 10000);
+    const cashOut = Math.round((value - remain) / 10000);
+    const delta = valueWan - buyWan;
+    const loanActive = v.payment === "loan" && v.loan && v.loan.paidMonths < v.loan.months;
+    const loanProgress = v.payment === "loan" && v.loan
+      ? `${v.loan.paidMonths}/${v.loan.months} 期 · 剩 ¥${Math.round(remain/10000)} 万`
+      : "全款";
+    const item = VEHICLE_CATALOG.find(x => x.id === v.vehicleId);
+    const activeTag = v.isActive ? `<span class="as-primary-tag as-ride-tag">🚗 当前座驾</span>` : "";
+    return `
+      <article class="as-card as-card-vehicle${v.isActive ? ' as-card-primary' : ''}">
+        ${item ? `<img class="as-vehicle-img" data-vehicle-id="${item.id}" loading="lazy" src="${vehicleImageSrc(item)}" alt="${_slEscape(v.title)}">` : ""}
+        <header class="as-card-head">
+          <h3>${_slEscape(v.title)} ${activeTag}</h3>
+          <span class="as-dist">${_slEscape(v.trimName || "")} · ${_slEscape(v.bodyType || "")} · ${_slEscape(v.energy || "")}</span>
+        </header>
+        <dl class="as-meta">
+          <dt>购入</dt><dd>${v.buyYear} 年 ${v.buyMonth || 1} 月 · ¥ ${buyWan} 万</dd>
+          <dt>性能</dt><dd>${_slEscape(v.energy || "")} · ${v.hp || "—"} hp · 0-100 ${_slEscape(v.accel || "—")}</dd>
+          <dt>配置</dt><dd>${_slEscape(v.color || "—")} · ${_slEscape((v.features || []).slice(0,4).join(" · ") || v.trimName || "—")}</dd>
+          <dt>当前估值</dt><dd><b>¥ ${valueWan} 万</b> <span class="as-down">${delta} 万</span></dd>
+          <dt>贷款</dt><dd>${loanProgress}</dd>
+          <dt>预估变现</dt><dd>¥ ${cashOut} 万 <small>（车辆只折旧不升值）</small></dd>
+        </dl>
+        <footer class="as-actions">
+          ${v.isActive
+            ? `<button class="btn-ghost" disabled>✓ 当前座驾</button>`
+            : `<button class="btn-primary" onclick="setActiveVehicle('${v.uid}')">设为座驾</button>`}
+          <button class="btn-ghost as-sell" onclick="sellVehicle('${v.uid}')">卖出</button>
+          ${loanActive ? `<span class="as-warn-tag">⚠ 车贷未结清</span>` : ""}
         </footer>
       </article>
     `;
@@ -692,6 +1001,54 @@ function sellHouse(uid){
   }
   S.log.push(`💸 卖出 ${h.name} · ${underwater?"倒贴":"到手"} ¥${Math.abs(cashWan).toFixed(1)} 万`);
   toast(`💸 已卖出 ${h.name}`);
+  renderAssets();
+  if (document.getElementById("player-card")) renderPlayerCard();
+  autoSave();
+}
+
+function setActiveVehicle(uid){
+  const vehicles = (S.player && S.player.vehicles) || [];
+  const target = vehicles.find(v => v.uid === uid);
+  if (!target) return;
+  vehicles.forEach(v => { v.isActive = false; });
+  target.isActive = true;
+  S.log.push(`🚗 当前座驾切换为：${target.title}`);
+  toast(`已切换座驾：${target.title}`);
+  renderAssets();
+  if (document.getElementById("player-card")) renderPlayerCard();
+  autoSave();
+}
+
+function sellVehicle(uid){
+  const vehicles = (S.player && S.player.vehicles) || [];
+  const idx = vehicles.findIndex(v => v.uid === uid);
+  if (idx < 0) return;
+  const v = vehicles[idx];
+  const [yr, mo] = _currentGameYM();
+  const value = vehicleCurrentValue(v, yr, mo);
+  const remain = (v.payment === "loan" && v.loan) ? remainingLoanPrincipal(v.loan) : 0;
+  const cash = value - remain;
+  const cashWan = cash / 10000;
+  const underwater = cash < 0;
+  const msg = `确认卖出「${v.title}」？\n\n` +
+    `车辆估值：¥ ${(value/10000).toFixed(1)} 万\n` +
+    `剩余车贷：¥ ${(remain/10000).toFixed(1)} 万\n` +
+    `${underwater ? "⚠ 资不抵债，将倒贴：" : "到手现金："}¥ ${cashWan.toFixed(1)} 万` +
+    (v.isActive ? "\n\n⚠ 这是当前座驾，卖出后将自动切换到其他车辆 / 无车状态" : "");
+  if (!confirm(msg)) return;
+  if (underwater && (S.player.money || 0) + cashWan < 0){
+    showModal("资金不足", `倒贴 ¥${Math.abs(cashWan).toFixed(1)} 万会让你的现金为负。请先攒钱再卖。`);
+    return;
+  }
+  S.player.money += cashWan;
+  const wasActive = v.isActive;
+  vehicles.splice(idx, 1);
+  if (wasActive && vehicles.length > 0){
+    vehicles[0].isActive = true;
+    S.log.push(`🚗 当前座驾自动切换为：${vehicles[0].title}`);
+  }
+  S.log.push(`💸 卖出 ${v.title} · ${underwater ? "倒贴" : "到手"} ¥${Math.abs(cashWan).toFixed(1)} 万`);
+  toast(`💸 已卖出 ${v.title}`);
   renderAssets();
   if (document.getElementById("player-card")) renderPlayerCard();
   autoSave();
@@ -1032,6 +1389,7 @@ function renderPlayerCard(){
         <dt>学历</dt><dd>${eduMap[p.edu] || "—"}</dd>
         <dt>籍贯</dt><dd>${hometownMap[p.hometown] || "—"}</dd>
         <dt>居住</dt><dd>${_slEscape(liveText(p))}</dd>
+        <dt>座驾</dt><dd>${_slEscape(vehicleText(p))}</dd>
         <dt>感情</dt><dd class="${relClass}">${relText}</dd>
         <dt>月薪</dt><dd>¥ ${(p.salary || 0).toLocaleString()}</dd>
       </dl>
@@ -1813,6 +2171,7 @@ function _applyLoadedState(state, label){
       if (typeof S.player.salary !== "number") S.player.salary = 10000;
       if (typeof S.player.lastTickKey === "undefined") S.player.lastTickKey = null;
       if (!Array.isArray(S.player.houses)) S.player.houses = [];
+      if (!Array.isArray(S.player.vehicles)) S.player.vehicles = [];
       // 旧存档迁移：单套 house -> houses[]
       if (S.player.house && typeof S.player.house === "object"){
         const old = S.player.house;
@@ -1825,6 +2184,9 @@ function _applyLoadedState(state, label){
       // 保证至少有一套自住
       if (S.player.houses.length && !S.player.houses.some(h => h.isPrimary)){
         S.player.houses[0].isPrimary = true;
+      }
+      if (S.player.vehicles.length && !S.player.vehicles.some(v => v.isActive)){
+        S.player.vehicles[0].isActive = true;
       }
     }
     if (CONTENT.injectMonthlyCases) CONTENT.injectMonthlyCases(S.caseSeed || 1);
