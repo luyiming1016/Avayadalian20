@@ -2072,9 +2072,10 @@ input { font-family: inherit; }
   max-width: 100%;
 }
 #screen-title .avaya-logo {
-  width: 1.7em;
-  height: 0.5em;
-  margin: 0;
+  width: 3em;
+  height: 0.9em;
+  margin: 0 4px 0 0;
+  vertical-align: baseline;
 }
 #screen-title .title-content h2 {
   color: #c40000 !important;
@@ -2084,16 +2085,15 @@ input { font-family: inherit; }
 }
 #screen-title .title-sub {
   display: block;
-  max-width: 620px;
-  margin: 0 auto 28px !important;
-  padding: 14px 18px;
-  background: #fff !important;
-  border: 1px solid #d5dee3;
-  border-left: 4px solid #4a9bb1;
-  color: #333 !important;
-  font-size: 13px !important;
-  line-height: 1.85;
-  text-align: left;
+  margin: 8px auto 36px !important;
+  padding: 0;
+  background: none !important;
+  border: none !important;
+  color: #555 !important;
+  font: 300 18px/1.6 "Microsoft YaHei", "PingFang SC", serif !important;
+  letter-spacing: 12px !important;
+  text-align: center;
+  text-indent: 12px;
 }
 #screen-title .title-btns {
   display: flex;
@@ -2665,17 +2665,17 @@ input { font-family: inherit; }
     margin: 18px auto 20px;
   }
   #screen-title .title-content h1 { font-size: 28px !important; }
-  #screen-title .avaya-logo { width: 1.9em; height: 0.55em; }
+  #screen-title .avaya-logo { width: 2.6em; height: 0.85em; }
   #screen-title .title-content h2 {
     font-size: 18px !important;
     letter-spacing: 4px !important;
     margin: 0 0 18px !important;
   }
   #screen-title .title-sub {
-    font-size: 12px !important;
-    line-height: 1.75;
-    padding: 12px 14px;
-    margin-bottom: 22px !important;
+    font-size: 14px !important;
+    letter-spacing: 8px !important;
+    padding: 0;
+    margin: 4px auto 22px !important;
   }
   #screen-title .title-btns {
     flex-direction: column;
@@ -3292,4 +3292,673 @@ input { font-family: inherit; }
 @media (max-width: 760px) {
   #screen-game .news-block { margin-top: 10px; }
   #screen-game .news-list li { font-size: 12px; padding: 5px 0; }
+}
+
+/* ============= 楼市 ============= */
+#screen-housing {
+  background: #f3f5f8;
+  color: #1a1f2c;
+  overflow-y: auto;
+}
+.housing-panel {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px 24px 60px;
+}
+.housing-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 16px;
+  padding-bottom: 14px;
+  border-bottom: 2px solid #d6263e;
+  margin-bottom: 16px;
+}
+.housing-header h2 {
+  font: 700 22px/1.2 "Microsoft YaHei", sans-serif;
+  color: #1a1f2c;
+}
+.housing-header h2 span { color: #d6263e; }
+.housing-sub {
+  font-size: 13px;
+  color: #5a6582;
+  margin-top: 4px;
+}
+.housing-header-right {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.housing-money {
+  text-align: right;
+}
+.housing-money .hm-lbl {
+  display: block;
+  font-size: 11px;
+  color: #5a6582;
+  letter-spacing: .04em;
+}
+.housing-money b {
+  font: 700 18px/1.2 Arial, sans-serif;
+  color: #d6263e;
+}
+.housing-header-right .btn-ghost {
+  color: #1a1f2c;
+  border-color: #c1c7d1;
+  background: #fff;
+}
+
+.housing-status {
+  background: #fff;
+  border: 1px solid #e1e4ea;
+  padding: 8px 14px;
+  font-size: 13px;
+  color: #1a1f2c;
+  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.housing-status .hs-tag {
+  background: #1a3d70;
+  color: #fff;
+  font: 700 11px/1.4 Arial, sans-serif;
+  padding: 2px 8px;
+  letter-spacing: .04em;
+}
+
+.housing-filters {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+.housing-filters .opt-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.housing-filters .opt {
+  background: #fff;
+  color: #1a1f2c;
+  border: 1px solid #c1c7d1;
+  padding: 6px 12px;
+  font-size: 13px;
+  border-radius: 0;
+  cursor: pointer;
+  font-family: inherit;
+}
+.housing-filters .opt.active {
+  background: #d6263e;
+  color: #fff;
+  border-color: #d6263e;
+}
+.housing-filters .opt:hover:not(.active) {
+  background: #fff0f2;
+  border-color: #d6263e;
+}
+
+.housing-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 14px;
+}
+.hs-empty {
+  grid-column: 1 / -1;
+  text-align: center;
+  padding: 40px;
+  color: #5a6582;
+}
+.hs-card {
+  background: #fff;
+  border: 1px solid #d8dde5;
+  padding: 14px;
+  cursor: pointer;
+  transition: transform .12s, box-shadow .12s, border-color .12s;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.hs-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 14px rgba(214, 38, 62, .12);
+  border-color: #d6263e;
+}
+.hs-card-head {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 4px;
+}
+.hs-cat-tag, .hs-dist-tag {
+  font: 700 11px/1.4 Arial, sans-serif;
+  padding: 2px 6px;
+  letter-spacing: .04em;
+  color: #fff;
+}
+.hs-cat-tag { background: #1a3d70; }
+.hs-cat-new .hs-cat-tag { background: #d6263e; }
+.hs-cat-second .hs-cat-tag { background: #6b6b6b; }
+.hs-dist-tag { background: #2f7a8e; }
+.hs-name {
+  font: 700 16px/1.3 "Microsoft YaHei", sans-serif;
+  color: #1a1f2c;
+}
+.hs-dev {
+  font-size: 12px;
+  color: #5a6582;
+  line-height: 1.4;
+}
+.hs-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
+  color: #1a1f2c;
+}
+.hs-floor { color: #5a6582; }
+.hs-price {
+  margin-top: 6px;
+  padding-top: 8px;
+  border-top: 1px dashed #d8dde5;
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+}
+.hs-unit {
+  font: 700 13px/1 Arial, sans-serif;
+  color: #1a3d70;
+}
+.hs-unit small {
+  font-weight: 400;
+  color: #5a6582;
+  font-size: 11px;
+}
+.hs-total {
+  font-size: 12px;
+  color: #5a6582;
+}
+.hs-total b {
+  font: 700 16px/1 Arial, sans-serif;
+  color: #d6263e;
+}
+
+/* 详情弹窗 */
+.hs-modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(10, 14, 26, .65);
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+.hs-modal.hidden { display: none !important; }
+.hs-modal-card {
+  background: #fff;
+  color: #1a1f2c;
+  width: min(720px, 96vw);
+  max-height: 92vh;
+  overflow-y: auto;
+  border: 1px solid #d8dde5;
+  box-shadow: 0 16px 40px rgba(0,0,0,.4);
+}
+.hs-modal-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding: 16px 20px;
+  border-bottom: 2px solid #d6263e;
+}
+.hs-modal-head h2 {
+  margin-top: 8px;
+  font: 700 22px/1.2 "Microsoft YaHei", sans-serif;
+}
+.hs-modal-dev {
+  font-size: 13px;
+  color: #5a6582;
+  margin-top: 4px;
+}
+.hs-modal-close {
+  background: #f3f5f8;
+  color: #1a1f2c;
+  border: 1px solid #c1c7d1;
+  padding: 4px 10px;
+}
+.hs-modal-body {
+  padding: 16px 20px 20px;
+}
+.hs-meta {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 6px 12px;
+  margin-bottom: 14px;
+  font-size: 13px;
+}
+.hs-meta dt {
+  color: #5a6582;
+  font-weight: 400;
+}
+.hs-meta dd { color: #1a1f2c; }
+.hs-pros-cons {
+  background: #f3f5f8;
+  padding: 10px 12px;
+  margin-bottom: 14px;
+  font-size: 13px;
+  line-height: 1.7;
+}
+.hs-pros { color: #1a3d70; }
+.hs-cons { color: #a04040; }
+.hs-warn {
+  background: #fff4e5;
+  border: 1px solid #f5c97a;
+  padding: 12px 14px;
+  font-size: 13px;
+  color: #6b3700;
+}
+.hs-pay-title {
+  font: 700 14px/1.2 "Microsoft YaHei", sans-serif;
+  color: #1a1f2c;
+  margin: 6px 0 10px;
+}
+.hs-pay-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 8px;
+}
+.hs-pay-btn {
+  background: #fff;
+  border: 1px solid #d8dde5;
+  padding: 12px 14px;
+  text-align: left;
+  cursor: pointer;
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: 6px 14px;
+  font-family: inherit;
+  transition: border-color .12s, background .12s;
+}
+.hs-pay-btn:hover {
+  border-color: #d6263e;
+  background: #fff7f8;
+}
+.hs-pay-lbl {
+  font: 700 14px/1.4 "Microsoft YaHei", sans-serif;
+  color: #d6263e;
+  grid-row: 1;
+}
+.hs-pay-val {
+  font: 700 14px/1.4 Arial, sans-serif;
+  color: #1a3d70;
+  text-align: right;
+  grid-row: 1;
+}
+.hs-pay-sub {
+  grid-column: 1 / -1;
+  font-size: 12px;
+  color: #5a6582;
+}
+.hs-money-hint {
+  margin-top: 10px;
+  font-size: 12px;
+  color: #5a6582;
+}
+.hs-money-hint b { color: #1a1f2c; }
+
+@media (max-width: 760px) {
+  .housing-panel { padding: 14px; }
+  .housing-header { flex-direction: column; align-items: stretch; }
+  .housing-header-right { justify-content: space-between; }
+  .housing-grid { grid-template-columns: 1fr; }
+  .hs-modal-card { max-height: 96vh; }
+}
+
+/* ============= 贝壳大连 · 多筛选行 ============= */
+#screen-housing .bk-logo {
+  background: linear-gradient(135deg, #00ae66, #00c97b);
+  color: #fff;
+  padding: 2px 10px;
+  margin-right: 6px;
+  font: 700 18px/1.4 "Microsoft YaHei", sans-serif;
+  letter-spacing: 1px;
+  border-radius: 3px;
+  display: inline-block;
+}
+.hs-result-count {
+  margin-left: auto;
+  font: 700 12px/1.4 Arial, sans-serif;
+  color: #d6263e;
+  letter-spacing: .02em;
+}
+.hs-filter-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 4px 0;
+  border-top: 1px dashed #e6e9ee;
+}
+.hs-filter-row:first-child { border-top: 0; }
+.hs-filter-lbl {
+  flex: 0 0 44px;
+  font: 700 12px/1.4 "Microsoft YaHei", sans-serif;
+  color: #1a3d70;
+  letter-spacing: .04em;
+}
+.housing-filters .opt-group {
+  flex: 1 1 auto;
+}
+.hs-sort-row .opt {
+  background: #1a3d70;
+  color: #fff;
+  border-color: #1a3d70;
+}
+.hs-sort-row .opt.active {
+  background: #00ae66;
+  border-color: #00ae66;
+}
+.hs-sort-row .opt:hover:not(.active) {
+  background: #305f9c;
+  border-color: #305f9c;
+}
+.hs-more {
+  grid-column: 1 / -1;
+  text-align: center;
+  padding: 14px;
+}
+.hs-more .btn-ghost {
+  color: #1a1f2c;
+  border-color: #c1c7d1;
+  background: #fff;
+  padding: 8px 24px;
+}
+.hs-more .btn-ghost:hover {
+  background: #fff0f2;
+  border-color: #d6263e;
+}
+@media (max-width: 760px) {
+  .hs-filter-row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 6px;
+  }
+  .hs-filter-lbl { flex: 0 0 auto; }
+  .housing-filters .opt { font-size: 12px; padding: 5px 9px; }
+  .hs-result-count { margin-left: 8px; }
+}
+
+/* ============= Topbar 右侧按钮 · 与红色 enterprise 顶栏一致的扁平风 ============= */
+#screen-game .topbar .tb-right {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding-right: 2px;
+  flex: 0 0 auto;
+}
+#screen-game .topbar .tb-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  height: 22px;
+  min-height: 22px;
+  padding: 0 7px 0 4px;
+  border: 1px solid rgba(255, 255, 255, .55);
+  border-radius: 2px;
+  background: rgba(255, 255, 255, .12);
+  color: #fff !important;
+  font: 700 12px/20px "Microsoft YaHei", Arial, sans-serif !important;
+  letter-spacing: 0;
+  cursor: pointer;
+  white-space: nowrap;
+  box-shadow: none !important;
+  transition: background .12s, border-color .12s;
+}
+#screen-game .topbar .tb-btn:hover {
+  background: #fff;
+  color: #b60000 !important;
+  border-color: #fff;
+}
+#screen-game .topbar .tb-btn:hover .tb-btn-ico-box {
+  background: #b60000;
+  color: #fff;
+}
+#screen-game .topbar .tb-btn:active {
+  background: #f0f0f0;
+}
+#screen-game .topbar .tb-btn .tb-btn-ico {
+  display: none;
+}
+#screen-game .topbar .tb-btn .tb-btn-txt {
+  font: inherit;
+  letter-spacing: .05em;
+}
+/* 用图标位作为色块标识（贝壳绿/橙/蓝），保持小巧统一 */
+#screen-game .topbar .tb-btn::before {
+  content: "";
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  border-radius: 2px;
+  background: #fff;
+  color: #fff;
+  font: 700 10px/14px Arial, sans-serif;
+  text-align: center;
+  flex: 0 0 14px;
+}
+#screen-game .topbar .tb-btn-housing::before {
+  background: #00ae66;
+  content: "贝";
+}
+#screen-game .topbar .tb-btn-assets::before {
+  background: #7c4dff;
+  content: "产";
+}
+#screen-game .topbar .tb-btn-save::before {
+  background: #ff8c42;
+  content: "存";
+}
+#screen-game .topbar .tb-btn-home::before {
+  background: #3c4f7a;
+  content: "⌂";
+  line-height: 13px;
+  font-size: 11px;
+}
+
+@media (max-width: 760px) {
+  #screen-game .topbar .tb-btn {
+    padding: 0 6px 0 4px;
+    font-size: 11px !important;
+  }
+}
+@media (max-width: 480px) {
+  #screen-game .topbar .tb-btn .tb-btn-txt { display: none; }
+  #screen-game .topbar .tb-btn { padding: 0 4px; }
+  #screen-game .topbar .tb-btn::before { margin: 0; }
+}
+
+/* ===================================================================
+ * 资产屏 · screen-assets
+ * =================================================================== */
+#screen-assets {
+  background: #f3f4f7;
+  color: #1a1f2c;
+  overflow-y: auto;
+}
+.assets-panel {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px 24px 60px;
+}
+.assets-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 16px;
+  padding-bottom: 14px;
+  border-bottom: 2px solid #7c4dff;
+  margin-bottom: 16px;
+}
+.assets-header h2 {
+  font: 700 22px/1.2 "Microsoft YaHei", sans-serif;
+  color: #1a1f2c;
+}
+.assets-header h2 span { color: #7c4dff; }
+.assets-sub {
+  font-size: 13px;
+  color: #5a6582;
+  margin-top: 4px;
+}
+.assets-header-right {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.assets-header-right .btn-ghost {
+  color: #1a1f2c;
+  border-color: #c1c7d1;
+  background: #fff;
+}
+
+/* 资产汇总卡 */
+.as-summary {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+  margin-bottom: 20px;
+}
+.as-sum-item {
+  background: #fff;
+  border: 1px solid #e1e4ea;
+  border-left: 3px solid #7c4dff;
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.as-sum-item span {
+  font-size: 12px;
+  color: #5a6582;
+  letter-spacing: .04em;
+}
+.as-sum-item b {
+  font: 700 18px/1.2 Arial, sans-serif;
+  color: #1a1f2c;
+}
+.as-sum-item.as-sum-net {
+  border-left-color: #00ae66;
+}
+.as-sum-item.as-sum-net b { color: #00875a; }
+
+/* 房产卡列表 */
+.as-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
+  gap: 14px;
+}
+.as-card {
+  background: #fff;
+  border: 1px solid #e1e4ea;
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  border-top: 3px solid #c1c7d1;
+}
+.as-card-primary {
+  border-top-color: #00ae66;
+  box-shadow: 0 2px 6px rgba(0, 174, 102, .12);
+}
+.as-card-head h3 {
+  font: 700 16px/1.3 "Microsoft YaHei", sans-serif;
+  color: #1a1f2c;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.as-primary-tag {
+  display: inline-block;
+  font: 700 11px/1 Arial, sans-serif;
+  background: #00ae66;
+  color: #fff;
+  padding: 3px 6px;
+  border-radius: 2px;
+  letter-spacing: .04em;
+}
+.as-dist {
+  display: block;
+  font-size: 12px;
+  color: #5a6582;
+  margin-top: 4px;
+}
+.as-meta {
+  display: grid;
+  grid-template-columns: 70px 1fr;
+  gap: 4px 10px;
+  font-size: 13px;
+  margin: 0;
+}
+.as-meta dt {
+  color: #5a6582;
+}
+.as-meta dd {
+  color: #1a1f2c;
+  margin: 0;
+}
+.as-meta dd small {
+  color: #8a93a6;
+  font-size: 11px;
+}
+.as-up { color: #00875a; font-weight: 700; font-size: 12px; }
+.as-down { color: #d6263e; font-weight: 700; font-size: 12px; }
+
+.as-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding-top: 8px;
+  border-top: 1px dashed #e1e4ea;
+}
+.as-actions button {
+  flex: 1 1 auto;
+  min-width: 90px;
+  font-size: 12px !important;
+  padding: 6px 10px !important;
+}
+.as-actions .as-sell {
+  color: #d6263e !important;
+  border-color: #d6263e !important;
+}
+.as-actions .as-sell:hover {
+  background: #d6263e !important;
+  color: #fff !important;
+}
+.as-warn-tag {
+  display: inline-block;
+  flex: 1 1 100%;
+  text-align: center;
+  background: #fff7e6;
+  color: #b6651a;
+  border: 1px dashed #f0b96a;
+  font-size: 11px;
+  padding: 3px 6px;
+  margin-top: 4px;
+}
+
+.as-empty {
+  background: #fff;
+  border: 1px dashed #c1c7d1;
+  padding: 40px 24px;
+  text-align: center;
+  color: #5a6582;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  align-items: center;
+}
+
+@media (max-width: 760px) {
+  .assets-panel { padding: 14px; }
+  .assets-header { flex-direction: column; align-items: stretch; }
+  .assets-header-right { justify-content: space-between; }
+  .as-summary { grid-template-columns: repeat(2, 1fr); }
+  .as-list { grid-template-columns: 1fr; }
 }

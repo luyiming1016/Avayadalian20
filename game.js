@@ -19,6 +19,9 @@ const DEFAULT_STATE = () => ({
     legend:0, father:null, caseScore:0,
     spouseName:null, spouseType:null,
     avatar:null,
+    salary:10000,
+    houses:[],         // 多套房产：[{uid, propId, name, district, address, area, rooms, buyYear, totalPrice, payment, loan, renovation, isPrimary}]
+    lastTickKey:null,  // 上次结算的 YYYY-MM
     flags:{}
   },
   rel:{ cruce:60, david:50, laok:55, frank:0, eric:40, spouse:0 },
@@ -140,6 +143,581 @@ function maybeUnlockSkill(scoreDelta){
     if (document.getElementById("player-card")) renderPlayerCard();
   }
 }
+
+/* ============================================================
+ * 工资 + 楼市 + 月供系统
+ * ============================================================ */
+const GRADE_SALARY_TARGET = {
+  "Contractor":        10000,
+  "Engineer":          13000,
+  "Senior Engineer":   17000,
+  "L15-1":             22000,
+  "L15-2":             28000,
+  "Backbone Engineer · L15-2": 28000,
+  "Backbone":          32000
+};
+const MORTGAGE_ANNUAL_RATE = 0.049;   // 商贷基准
+const MORTGAGE_YEARS = 30;
+const DOWN_PAY_RATIO = { new: 0.30, second: 0.40 };
+
+function liveMapStatic(){
+  return { share:"与同事合租", solo:"独居小公寓", relative:"借住亲戚家" };
+}
+function getPrimaryHouse(){
+  const houses = (S && S.player && S.player.houses) || [];
+  return houses.find(h => h.isPrimary) || houses[0] || null;
+}
+function liveText(p){
+  if (!p) return "—";
+  const primary = (p.houses || []).find(h => h.isPrimary) || (p.houses || [])[0];
+  if (primary){
+    const hint = p.spouseName ? "与" + p.spouseName + "同住" : "自住";
+    const loanActive = primary.payment === "loan" && primary.loan && (primary.loan.paidMonths || 0) < primary.loan.months;
+    const loanTag = loanActive ? " · 房贷中" : (primary.payment === "loan" ? " · 已还清" : " · 全款");
+    const more = (p.houses || []).length > 1 ? `（共 ${p.houses.length} 套）` : "";
+    return `${primary.district || ""} · ${primary.name}（${hint}${loanTag}）${more}`;
+  }
+  if (p.spouseName){
+    return `与 ${p.spouseName} 同住 · 租房`;
+  }
+  const m = liveMapStatic();
+  return m[p.live] || "—";
+}
+
+/* 估算贷款剩余本金（卖房用） */
+function remainingLoanPrincipal(loan){
+  if (!loan) return 0;
+  const months = loan.months || 0;
+  const paid = loan.paidMonths || 0;
+  if (paid >= months) return 0;
+  if (loan.type === "principal"){
+    return Math.round(loan.principal * (1 - paid / months));
+  }
+  // 等额本息：用摊销公式精算剩余本金
+  const r = (loan.annualRate || 0) / 12;
+  if (r === 0) return Math.round(loan.principal * (1 - paid / months));
+  const m = mortgageMonthlyEqual(loan.principal, loan.annualRate, months);
+  let bal = loan.principal;
+  for (let i = 0; i < paid; i++){
+    const interest = bal * r;
+    bal = bal - (m - interest);
+  }
+  return Math.round(Math.max(0, bal));
+}
+
+/* 当前估值（含装修溢价） */
+const RENO_MULT = { 0:1.00, 1:1.05, 2:1.12, 3:1.20 };
+const RENO_LABEL = { 0:"毛坯", 1:"简装", 2:"精装", 3:"豪装" };
+const RENO_COST_PER_SQM = { 1:1500, 2:3000, 3:5000 };
+function houseCurrentValue(house, year){
+  const prop = HOUSING_CATALOG.find(p => p.id === house.propId);
+  if (!prop) return house.totalPrice || 0;
+  const base = housePriceTotal(prop, year);
+  const lvl = (house.renovation && house.renovation.level) || 0;
+  return Math.round(base * (RENO_MULT[lvl] || 1));
+}
+
+/* ---- 月度结算：发工资 / 扣房贷 / 每年 1 月调薪 ---- */
+function monthlyTick(year, month){
+  if (!S || !S.player) return;
+  const key = `${year}-${String(month).padStart(2,"0")}`;
+  if (S.player.lastTickKey === key) return;
+  // 第一次结算就先标记到本月（防止跨年初始化时倒灌）
+  if (!S.player.lastTickKey){ S.player.lastTickKey = key; return; }
+
+  // 顺序推进每个未结算月份（一般只跑 1 次，跨多月也补齐）
+  let [py, pm] = S.player.lastTickKey.split("-").map(Number);
+  while (true){
+    pm += 1; if (pm > 12){ pm = 1; py += 1; }
+    _doSingleMonthTick(py, pm);
+    if (py === year && pm === month) break;
+    if (py > year + 1) break;     // 安全保险
+  }
+  S.player.lastTickKey = key;
+}
+
+function _doSingleMonthTick(y, m){
+  const p = S.player;
+  // 1 月：年度普调 3%–7%
+  if (m === 1){
+    const rate = 0.03 + Math.random() * 0.04;
+    const before = p.salary || 10000;
+    p.salary = Math.round(before * (1 + rate));
+    S.log.push(`💵 ${y}-01 年度普调 +${(rate*100).toFixed(1)}% · ¥${before.toLocaleString()} → ¥${p.salary.toLocaleString()}`);
+  }
+  // 发工资（按万元单位累计到 money）
+  if (p.salary > 0){
+    p.money = (p.money || 0) + p.salary / 10000;
+  }
+  // 扣所有未还清的房贷
+  (p.houses || []).forEach(h => {
+    if (h.payment !== "loan" || !h.loan) return;
+    const ln = h.loan;
+    if (ln.paidMonths >= ln.months) return;
+    let due;
+    if (ln.type === "principal"){
+      due = mortgageMonthlyPrincipalAt(ln.principal, ln.annualRate, ln.months, ln.paidMonths + 1);
+    } else {
+      due = ln.monthly;
+    }
+    p.money = (p.money || 0) - due / 10000;
+    ln.paidMonths += 1;
+    ln.paidPrincipal = (ln.paidPrincipal || 0) + (ln.principal / ln.months);
+    if (ln.paidMonths >= ln.months){
+      S.log.push(`🏦 ${y}-${String(m).padStart(2,"0")} ${h.name} 房贷已全部还清！`);
+    }
+  });
+}
+
+/* ---- 晋升涨薪：基于职级目标线 ---- */
+function applyPromotionRaise(oldGrade, newGrade){
+  if (!S || !S.player) return;
+  if (oldGrade === newGrade) return;
+  const target = GRADE_SALARY_TARGET[newGrade];
+  if (!target) return;
+  const before = S.player.salary || 10000;
+  // 至少跳到目标线；若已超目标线，按 12%–18% 再加
+  const next = target > before ? target : Math.round(before * (1.12 + Math.random() * 0.06));
+  S.player.salary = next;
+  S.log.push(`🎖 晋升 ${newGrade} · 月薪 ¥${before.toLocaleString()} → ¥${next.toLocaleString()}`);
+  toast(`晋升 ${newGrade} · 月薪 ¥${next.toLocaleString()}`, 3000);
+}
+
+/* ---- 楼市屏：列表 + 筛选 + 详情 + 购房 ---- */
+let _hsFilterCat = "all";
+let _hsFilterDist = "all";
+let _hsFilterRooms = "all";
+let _hsFilterPrice = "all";
+let _hsSort = "default";
+let _hsPageSize = 60;
+let _hsPage = 1;
+
+function _currentGameYM(){
+  const yearData = (typeof CONTENT !== "undefined" && CONTENT.years) ? CONTENT.years[S.yearIdx] : null;
+  const yr = yearData?.year || 2018;
+  const ev = yearData?.events?.[S.eventIdx];
+  const mo = ev?.month || 1;
+  return [yr, mo];
+}
+
+function openHousing(){
+  if (!_hasInGameState()){ toast("当前没有可操作的游戏进度"); return; }
+  if (typeof HOUSING_CATALOG === "undefined"){ toast("楼市数据未加载"); return; }
+  _hsReturnTo = _activeScreenId() || "screen-game";
+  // 构造区域筛选按钮
+  const dwrap = document.getElementById("hs-dist");
+  if (dwrap){
+    const dl = districtList();
+    dwrap.innerHTML = `<button class="opt active" data-v="all">全部区域</button>` +
+      dl.map(d => `<button class="opt" data-v="${_slEscape(d)}">${_slEscape(d)}</button>`).join("");
+  }
+  goto("screen-housing");
+  renderHousingScreen();
+}
+let _hsReturnTo = "screen-game";
+function closeHousing(){
+  _hsCloseModal();
+  const back = _hsReturnTo || "screen-game";
+  goto(back);
+  if (back === "screen-game"){
+    renderTopBar(); renderSidebar(); renderEvent();
+  }
+}
+
+function renderHousingScreen(){
+  const [yr] = _currentGameYM();
+  const p = S.player;
+  document.getElementById("hs-year").textContent = yr;
+  document.getElementById("hs-money").textContent = `¥ ${Math.round(p.money || 0)} w`;
+  document.getElementById("hs-live").textContent = liveText(p);
+  renderHousingList();
+}
+
+function renderHousingList(){
+  const [yr] = _currentGameYM();
+  const wrap = document.getElementById("hs-grid");
+  if (!wrap) return;
+  let list = HOUSING_CATALOG.slice();
+  if (_hsFilterCat !== "all") list = list.filter(x => x.category === _hsFilterCat);
+  if (_hsFilterDist !== "all") list = list.filter(x => x.district === _hsFilterDist);
+  if (_hsFilterRooms !== "all") list = list.filter(x => houseRoomBucket(x) === _hsFilterRooms);
+  if (_hsFilterPrice !== "all") list = list.filter(x => housePriceBucket(x, yr) === _hsFilterPrice);
+
+  // 排序
+  if (_hsSort === "totalAsc")  list.sort((a,b) => housePriceTotal(a,yr) - housePriceTotal(b,yr));
+  else if (_hsSort === "totalDesc") list.sort((a,b) => housePriceTotal(b,yr) - housePriceTotal(a,yr));
+  else if (_hsSort === "unitAsc")   list.sort((a,b) => houseUnitPriceNow(a,yr) - houseUnitPriceNow(b,yr));
+  else if (_hsSort === "unitDesc")  list.sort((a,b) => houseUnitPriceNow(b,yr) - houseUnitPriceNow(a,yr));
+
+  const totalCount = list.length;
+  const countEl = document.getElementById("hs-count");
+  if (countEl) countEl.textContent = `共 ${totalCount} 套`;
+
+  // 分页（避免一次性渲染 500 张卡）
+  const start = 0;
+  const end = Math.min(totalCount, _hsPage * _hsPageSize);
+  const shown = list.slice(start, end);
+
+  const cardHtml = shown.map(prop => {
+    const unit = houseUnitPriceNow(prop, yr);
+    const total = housePriceTotal(prop, yr);
+    const totalWan = Math.round(total / 10000);
+    const tag = prop.category === "new" ? "新房" : "二手房";
+    return `
+      <article class="hs-card hs-cat-${prop.category}" onclick="renderHousingDetail('${prop.id}')">
+        <header class="hs-card-head">
+          <span class="hs-cat-tag">${tag}</span>
+          <span class="hs-dist-tag">${_slEscape(prop.district)}</span>
+        </header>
+        <h3 class="hs-name">${_slEscape(prop.name)}</h3>
+        <p class="hs-dev">${_slEscape(prop.developer)} · ${_slEscape(prop.address)}</p>
+        <div class="hs-row">
+          <span>${_slEscape(prop.rooms)}</span><span>${prop.area} ㎡</span>
+        </div>
+        <div class="hs-row hs-floor">${_slEscape(prop.floor)}</div>
+        <div class="hs-price">
+          <span class="hs-unit">¥ ${unit.toLocaleString()} <small>元/㎡</small></span>
+          <span class="hs-total">总价 <b>¥ ${totalWan} 万</b></span>
+        </div>
+      </article>`;
+  }).join("");
+
+  let html = cardHtml;
+  if (end < totalCount){
+    html += `<div class="hs-more"><button class="btn-ghost" onclick="_hsLoadMore()">加载更多（剩余 ${totalCount - end} 套）</button></div>`;
+  }
+  wrap.innerHTML = html;
+  if (!totalCount){
+    wrap.innerHTML = `<p class="hs-empty">没有符合条件的楼盘</p>`;
+  }
+}
+function _hsLoadMore(){ _hsPage += 1; renderHousingList(); }
+
+function renderHousingDetail(propId){
+  const prop = HOUSING_CATALOG.find(x => x.id === propId);
+  if (!prop) return;
+  const [yr] = _currentGameYM();
+  const unit = houseUnitPriceNow(prop, yr);
+  const total = housePriceTotal(prop, yr);
+  const totalWan = Math.round(total / 10000);
+  const moneyWan = Math.round(S.player.money || 0);
+  const ownedCount = (S.player.houses || []).length;
+  const tag = prop.category === "new" ? "新房" : "二手房";
+
+  const downRatio = DOWN_PAY_RATIO[prop.category] || 0.3;
+  const downWan = Math.round(total * downRatio / 10000);
+  const principal = total - Math.round(total * downRatio);
+  const months = MORTGAGE_YEARS * 12;
+  const annual = MORTGAGE_ANNUAL_RATE;
+  const mEq = Math.round(mortgageMonthlyEqual(principal, annual, months));
+  const mPr1 = Math.round(mortgageMonthlyPrincipalFirst(principal, annual, months));
+  const mPrLast = Math.round(mortgageMonthlyPrincipalAt(principal, annual, months, months));
+  const intEq = Math.round(mortgageTotalInterest(principal, annual, months, "equal"));
+  const intPr = Math.round(mortgageTotalInterest(principal, annual, months, "principal"));
+
+  const card = document.getElementById("hs-modal-card");
+  card.innerHTML = `
+    <header class="hs-modal-head">
+      <div>
+        <span class="hs-cat-tag">${tag}</span>
+        <span class="hs-dist-tag">${_slEscape(prop.district)}</span>
+        <h2>${_slEscape(prop.name)}</h2>
+        <p class="hs-modal-dev">${_slEscape(prop.developer)} · ${_slEscape(prop.address)}</p>
+      </div>
+      <button class="btn-icon hs-modal-close" onclick="_hsCloseModal()" title="关闭">✕</button>
+    </header>
+    <section class="hs-modal-body">
+      <dl class="hs-meta">
+        <dt>户型</dt><dd>${_slEscape(prop.rooms)}</dd>
+        <dt>面积</dt><dd>${prop.area} ㎡</dd>
+        <dt>楼层</dt><dd>${_slEscape(prop.floor)}</dd>
+        <dt>${yr} 单价</dt><dd>¥ ${unit.toLocaleString()} 元/㎡</dd>
+        <dt>${yr} 总价</dt><dd><b>¥ ${totalWan} 万</b></dd>
+      </dl>
+      <div class="hs-pros-cons">
+        <div class="hs-pros">优势：${_slEscape(prop.pros)}</div>
+        <div class="hs-cons">劣势：${_slEscape(prop.cons)}</div>
+      </div>
+      ${ownedCount > 0 ? `
+        <div class="hs-note">
+          你目前已持有 <b>${ownedCount}</b> 套房产 · 再购入将记入 <a href="javascript:void(0)" onclick="_hsCloseModal();openAssets()">资产</a> 列表
+        </div>
+      ` : ""}
+        <h4 class="hs-pay-title">购房方式</h4>
+        <div class="hs-pay-grid">
+          <button class="hs-pay-btn" onclick="confirmPurchase('${prop.id}','full')">
+            <span class="hs-pay-lbl">全款</span>
+            <span class="hs-pay-val">¥ ${totalWan} 万</span>
+            <span class="hs-pay-sub">需 ${totalWan} 万一次付清</span>
+          </button>
+          <button class="hs-pay-btn" onclick="confirmPurchase('${prop.id}','loan-equal')">
+            <span class="hs-pay-lbl">贷款 · 等额本息</span>
+            <span class="hs-pay-val">首付 ${downWan} 万</span>
+            <span class="hs-pay-sub">月供 ¥${mEq.toLocaleString()} × 360 期 · 总息 ¥${(intEq/10000).toFixed(1)} 万</span>
+          </button>
+          <button class="hs-pay-btn" onclick="confirmPurchase('${prop.id}','loan-principal')">
+            <span class="hs-pay-lbl">贷款 · 等额本金</span>
+            <span class="hs-pay-val">首付 ${downWan} 万</span>
+            <span class="hs-pay-sub">首月 ¥${mPr1.toLocaleString()} · 末月 ¥${mPrLast.toLocaleString()} · 总息 ¥${(intPr/10000).toFixed(1)} 万</span>
+          </button>
+        </div>
+        <p class="hs-money-hint">你目前手头：<b>¥ ${moneyWan} 万</b>，需首付：<b>¥ ${downWan} 万</b>（首付比例 ${Math.round(downRatio*100)}% · 30 年期 · 年利率 ${(annual*100).toFixed(2)}%）</p>
+    </section>
+  `;
+  document.getElementById("hs-modal").classList.remove("hidden");
+}
+
+function _hsCloseModal(){
+  const m = document.getElementById("hs-modal");
+  if (m) m.classList.add("hidden");
+}
+
+function confirmPurchase(propId, mode){
+  const prop = HOUSING_CATALOG.find(x => x.id === propId);
+  if (!prop) return;
+  if (!Array.isArray(S.player.houses)) S.player.houses = [];
+
+  const [yr] = _currentGameYM();
+  const total = housePriceTotal(prop, yr);
+  const downRatio = DOWN_PAY_RATIO[prop.category] || 0.3;
+  const totalWan = total / 10000;
+  const downWan = Math.round(total * downRatio) / 10000;
+
+  let payNow;
+  let loan = null;
+  if (mode === "full"){
+    payNow = totalWan;
+  } else {
+    payNow = downWan;
+    const principal = total - Math.round(total * downRatio);
+    const months = MORTGAGE_YEARS * 12;
+    const type = mode === "loan-principal" ? "principal" : "equal";
+    const monthly = type === "equal" ? mortgageMonthlyEqual(principal, MORTGAGE_ANNUAL_RATE, months) : null;
+    loan = {
+      principal, annualRate: MORTGAGE_ANNUAL_RATE, months, type,
+      paidMonths: 0, paidPrincipal: 0,
+      monthly: monthly ? Math.round(monthly) : null
+    };
+  }
+
+  if ((S.player.money || 0) < payNow){
+    showModal("资金不足", `本次需要 <b>¥ ${payNow.toFixed(1)} 万</b>，你目前只有 <b>¥ ${(S.player.money||0).toFixed(1)} 万</b>。<br>建议换更便宜的楼盘或先攒钱。`);
+    return;
+  }
+  if (!confirm(`确认${mode==="full"?"全款":"贷款"}购入「${prop.name}」？将扣除 ¥${payNow.toFixed(1)} 万。`)) return;
+
+  S.player.money -= payNow;
+  const isFirst = S.player.houses.length === 0;
+  const newHouse = {
+    uid: "h" + Date.now().toString(36) + Math.floor(Math.random() * 1000),
+    propId: prop.id,
+    name: prop.name, district: prop.district, address: prop.address,
+    area: prop.area, rooms: prop.rooms,
+    buyYear: yr, totalPrice: total,
+    payment: mode === "full" ? "full" : "loan",
+    loan,
+    renovation: { level: 0, year: null, cost: 0 },
+    isPrimary: isFirst
+  };
+  S.player.houses.push(newHouse);
+  S.player.flags.bought_house = true;
+  S.log.push(`🏠 ${yr} 购入 ${prop.district} · ${prop.name}（${mode==="full"?"全款":"贷款"} · ¥${(total/10000).toFixed(0)} 万）${isFirst?" · 设为自住":""}`);
+  toast(`🏠 已购入 ${prop.name}`, 3200);
+  _hsCloseModal();
+  renderHousingScreen();
+  if (document.getElementById("player-card")) renderPlayerCard();
+  autoSave();
+}
+
+/* ============================================================
+ *  资产屏：所有持有房产 + 自住切换 / 装修 / 卖出
+ * ============================================================ */
+let _assetsReturnTo = "screen-game";
+function openAssets(){
+  if (!_hasInGameState()){ toast("当前没有可操作的游戏进度"); return; }
+  _assetsReturnTo = _activeScreenId() || "screen-game";
+  goto("screen-assets");
+  renderAssets();
+}
+function closeAssets(){
+  const back = _assetsReturnTo || "screen-game";
+  goto(back);
+  if (back === "screen-game"){
+    renderTopBar(); renderSidebar();
+  }
+}
+
+function renderAssets(){
+  const [yr] = _currentGameYM();
+  const p = S.player;
+  const houses = p.houses || [];
+  document.getElementById("as-year").textContent = yr;
+  document.getElementById("as-money").textContent = `¥ ${Math.round(p.money || 0)} w`;
+
+  // 资产汇总
+  let totalValue = 0, totalLoan = 0;
+  houses.forEach(h => {
+    totalValue += houseCurrentValue(h, yr);
+    if (h.payment === "loan" && h.loan) totalLoan += remainingLoanPrincipal(h.loan);
+  });
+  const netAsset = (p.money || 0) * 10000 + totalValue - totalLoan;
+  const sumEl = document.getElementById("as-summary");
+  sumEl.innerHTML = `
+    <div class="as-sum-item"><span>持有套数</span><b>${houses.length}</b></div>
+    <div class="as-sum-item"><span>房产估值</span><b>¥ ${Math.round(totalValue/10000)} 万</b></div>
+    <div class="as-sum-item"><span>剩余贷款</span><b>¥ ${Math.round(totalLoan/10000)} 万</b></div>
+    <div class="as-sum-item as-sum-net"><span>净资产</span><b>¥ ${Math.round(netAsset/10000)} 万</b></div>
+  `;
+
+  const wrap = document.getElementById("as-list");
+  if (!houses.length){
+    wrap.innerHTML = `<p class="as-empty">你还没有持有任何房产。<button class="btn-primary" onclick="closeAssets();openHousing()">去贝壳大连看房 →</button></p>`;
+    return;
+  }
+
+  wrap.innerHTML = houses.map(h => {
+    const value = houseCurrentValue(h, yr);
+    const valueWan = Math.round(value / 10000);
+    const remain = (h.payment === "loan" && h.loan) ? remainingLoanPrincipal(h.loan) : 0;
+    const remainWan = Math.round(remain / 10000);
+    const cashOut = Math.round((value - remain) / 10000);
+    const lvl = (h.renovation && h.renovation.level) || 0;
+    const renoLabel = RENO_LABEL[lvl] || "毛坯";
+    const loanActive = h.payment === "loan" && h.loan && h.loan.paidMonths < h.loan.months;
+    const loanProgress = h.payment === "loan" && h.loan
+      ? `${h.loan.paidMonths}/${h.loan.months} 期 · 剩 ¥${remainWan} 万`
+      : "—";
+    const buyWan = Math.round((h.totalPrice || 0) / 10000);
+    const delta = valueWan - buyWan;
+    const deltaCls = delta >= 0 ? "as-up" : "as-down";
+    const deltaTxt = (delta >= 0 ? "+" : "") + delta + " 万";
+    const primaryTag = h.isPrimary ? `<span class="as-primary-tag">🏡 自住</span>` : "";
+    const cantSell = h.isPrimary && houses.length > 1
+      ? "" // 仍可卖，但下方提示
+      : "";
+    return `
+      <article class="as-card${h.isPrimary ? ' as-card-primary' : ''}">
+        <header class="as-card-head">
+          <h3>${_slEscape(h.name)} ${primaryTag}</h3>
+          <span class="as-dist">${_slEscape(h.district)} · ${_slEscape(h.address || "")}</span>
+        </header>
+        <dl class="as-meta">
+          <dt>户型</dt><dd>${_slEscape(h.rooms)} · ${h.area} ㎡</dd>
+          <dt>购入</dt><dd>${h.buyYear} 年 · ¥ ${buyWan} 万</dd>
+          <dt>当前估值</dt><dd><b>¥ ${valueWan} 万</b> <span class="${deltaCls}">${deltaTxt}</span></dd>
+          <dt>装修</dt><dd>${renoLabel}${lvl>0 ? ` · ${h.renovation.year} 年完成` : ""}</dd>
+          <dt>贷款</dt><dd>${h.payment === "loan" ? loanProgress : "全款"}</dd>
+          <dt>预估变现</dt><dd>¥ ${cashOut} 万 <small>（估值 - 剩余贷款）</small></dd>
+        </dl>
+        <footer class="as-actions">
+          ${h.isPrimary
+            ? `<button class="btn-ghost" disabled>✓ 当前自住</button>`
+            : `<button class="btn-primary" onclick="setPrimaryHouse('${h.uid}')">设为自住</button>`}
+          ${lvl < 3
+            ? `<button class="btn-ghost" onclick="renovateHouse('${h.uid}')">装修 → ${RENO_LABEL[lvl+1]} (¥${Math.round(h.area * RENO_COST_PER_SQM[lvl+1] / 10000)} 万)</button>`
+            : `<button class="btn-ghost" disabled>装修已满级</button>`}
+          <button class="btn-ghost as-sell" onclick="sellHouse('${h.uid}')">卖出</button>
+          ${loanActive ? `<span class="as-warn-tag">⚠ 贷款未结清</span>` : ""}
+        </footer>
+      </article>
+    `;
+  }).join("");
+}
+
+function setPrimaryHouse(uid){
+  const houses = (S.player && S.player.houses) || [];
+  const target = houses.find(h => h.uid === uid);
+  if (!target) return;
+  houses.forEach(h => { h.isPrimary = false; });
+  target.isPrimary = true;
+  S.log.push(`🏡 自住房切换为：${target.name}`);
+  toast(`已切换自住：${target.name}`);
+  renderAssets();
+  autoSave();
+}
+
+function renovateHouse(uid){
+  const houses = (S.player && S.player.houses) || [];
+  const h = houses.find(x => x.uid === uid);
+  if (!h) return;
+  const lvl = (h.renovation && h.renovation.level) || 0;
+  if (lvl >= 3){ toast("装修已满级"); return; }
+  const nextLvl = lvl + 1;
+  const costWan = h.area * RENO_COST_PER_SQM[nextLvl] / 10000;
+  if ((S.player.money || 0) < costWan){
+    showModal("资金不足", `升级到「${RENO_LABEL[nextLvl]}」需要 <b>¥ ${costWan.toFixed(1)} 万</b>，你只有 <b>¥ ${(S.player.money||0).toFixed(1)} 万</b>。`);
+    return;
+  }
+  if (!confirm(`将「${h.name}」从 ${RENO_LABEL[lvl]} 升级到 ${RENO_LABEL[nextLvl]}？\n费用：¥ ${costWan.toFixed(1)} 万 · 房产估值预计 +${Math.round((RENO_MULT[nextLvl]-RENO_MULT[lvl])*100)}%`)) return;
+  const [yr] = _currentGameYM();
+  S.player.money -= costWan;
+  h.renovation = { level: nextLvl, year: yr, cost: (h.renovation?.cost || 0) + costWan };
+  // 装修给伴侣/家庭加点小温度
+  if (S.player.spouseName) S.rel.spouse = clamp((S.rel.spouse || 0) + 2, 0, 100);
+  S.player.family = clamp((S.player.family || 0) + 1, 0, 200);
+  S.log.push(`🛠 装修 ${h.name} → ${RENO_LABEL[nextLvl]}（¥${costWan.toFixed(1)} 万）`);
+  toast(`🛠 装修完成：${RENO_LABEL[nextLvl]}`);
+  renderAssets();
+  if (document.getElementById("player-card")) renderPlayerCard();
+  autoSave();
+}
+
+function sellHouse(uid){
+  const houses = (S.player && S.player.houses) || [];
+  const idx = houses.findIndex(h => h.uid === uid);
+  if (idx < 0) return;
+  const h = houses[idx];
+  const [yr] = _currentGameYM();
+  const value = houseCurrentValue(h, yr);
+  const remain = (h.payment === "loan" && h.loan) ? remainingLoanPrincipal(h.loan) : 0;
+  const cash = value - remain;
+  const cashWan = cash / 10000;
+  const underwater = cash < 0;
+  const msg = `确认卖出「${h.name}」？\n\n` +
+    `当前估值：¥ ${(value/10000).toFixed(1)} 万\n` +
+    `剩余贷款：¥ ${(remain/10000).toFixed(1)} 万\n` +
+    `${underwater ? "⚠ 资不抵债，将倒贴：" : "到手现金："}¥ ${cashWan.toFixed(1)} 万${underwater ? "（需自掏腰包）":""}` +
+    (h.isPrimary ? "\n\n⚠ 这是你的自住房，卖出后将自动切换到其他房产 / 改为租房" : "");
+  if (!confirm(msg)) return;
+  if (underwater && (S.player.money || 0) + cashWan < 0){
+    showModal("资金不足", `倒贴 ¥${Math.abs(cashWan).toFixed(1)} 万会让你的现金为负。请先攒钱再考虑止损卖出。`);
+    return;
+  }
+  S.player.money += cashWan;
+  const wasPrimary = h.isPrimary;
+  houses.splice(idx, 1);
+  if (wasPrimary && houses.length > 0){
+    houses[0].isPrimary = true;
+    S.log.push(`🏡 自住自动切换为：${houses[0].name}`);
+  }
+  S.log.push(`💸 卖出 ${h.name} · ${underwater?"倒贴":"到手"} ¥${Math.abs(cashWan).toFixed(1)} 万`);
+  toast(`💸 已卖出 ${h.name}`);
+  renderAssets();
+  if (document.getElementById("player-card")) renderPlayerCard();
+  autoSave();
+}
+
+/* 楼市筛选交互 */
+function _hsBindFilter(hostId, setter){
+  // 通过事件委托捕获，所有筛选行共用一个委托
+  return (e) => {
+    const t = e.target;
+    if (!t || !t.dataset) return;
+    const host = t.closest && t.closest("#" + hostId);
+    if (host && t.classList.contains("opt")){
+      host.querySelectorAll(".opt").forEach(b => b.classList.remove("active"));
+      t.classList.add("active");
+      setter(t.dataset.v);
+      _hsPage = 1;
+      renderHousingList();
+    }
+  };
+}
+document.addEventListener("click", _hsBindFilter("hs-tabs",  v => _hsFilterCat = v));
+document.addEventListener("click", _hsBindFilter("hs-dist",  v => _hsFilterDist = v));
+document.addEventListener("click", _hsBindFilter("hs-rooms", v => _hsFilterRooms = v));
+document.addEventListener("click", _hsBindFilter("hs-price", v => _hsFilterPrice = v));
+document.addEventListener("click", _hsBindFilter("hs-sort",  v => _hsSort = v));
 
 /* ---------- 屏幕切换 ---------- */
 function goto(id){
@@ -386,6 +964,8 @@ function renderTopBar(){
   set("ui-eq", p.eq); set("ui-en", p.en); set("ui-res", p.res);
   set("ui-hp", clamp(p.hp,0,100)); set("ui-money", Math.round(p.money));
   set("ui-case", p.caseScore || 0);
+  const salEl = document.getElementById("ui-salary");
+  if (salEl) salEl.textContent = (p.salary || 0).toLocaleString();
 }
 
 /* ---------- 左侧栏 ---------- */
@@ -451,8 +1031,9 @@ function renderPlayerCard(){
         <dt>性别</dt><dd>${genderMap[p.gender] || "—"}</dd>
         <dt>学历</dt><dd>${eduMap[p.edu] || "—"}</dd>
         <dt>籍贯</dt><dd>${hometownMap[p.hometown] || "—"}</dd>
-        <dt>居住</dt><dd>${liveMap[p.live] || "—"}</dd>
+        <dt>居住</dt><dd>${_slEscape(liveText(p))}</dd>
         <dt>感情</dt><dd class="${relClass}">${relText}</dd>
+        <dt>月薪</dt><dd>¥ ${(p.salary || 0).toLocaleString()}</dd>
       </dl>
       <div class="pc-skills">
         <div class="pc-skills-head">
@@ -560,8 +1141,23 @@ function renderCaseTitle(ev){
 function renderEvent(){
   const year = CONTENT.years[S.yearIdx];
   if (!year) return finaleEnter();
-  const ev = year.events[S.eventIdx];
+  let ev = year.events[S.eventIdx];
   if (!ev) return endOfYear();
+
+  // 跳过：已买房则跳过 requireNoHouse 的剧情
+  while (ev && ev.requireNoHouse && getPrimaryHouse()){
+    const ph = getPrimaryHouse();
+    S.log.push(`（已自购 ${ph.name} · 跳过 "${ev.title}"）`);
+    S.eventIdx++;
+    ev = year.events[S.eventIdx];
+  }
+  if (!ev) return endOfYear();
+
+  // 每月结算（发工资、扣房贷、1 月调薪）
+  if (ev.month){
+    monthlyTick(year.year, ev.month);
+    renderTopBar();
+  }
 
   const titleEl = document.getElementById("event-title");
   if (ev.isCase) titleEl.innerHTML = renderCaseTitle(ev);
@@ -666,6 +1262,12 @@ function onChoice(ev, ch){
   toast(ch.log || "已记录这次选择");
   S.eventIdx++;
   renderTopBar(); renderSidebar();
+  // 选项可触发系统动作（如直接跳楼市）
+  if (ch.action === "openHousing"){
+    autoSave();
+    setTimeout(() => openHousing(), 200);
+    return;
+  }
   // 等动画一下再渲下一事件
   setTimeout(() => renderEvent(), 250);
   // 每次自动存档
@@ -694,7 +1296,9 @@ function endOfYear(){
     if (wantsPromotion && caseYear && caseYear.score < 12){
       S.log.push(`${year.year} · case 年度得分 ${caseYear.score}，晋升证据不足`);
     } else {
+      const oldGrade = S.player.grade;
       S.player.grade = year.review.grade;
+      if (wantsPromotion) applyPromotionRaise(oldGrade, year.review.grade);
       if (caseYear && caseYear.score >= 36){
         S.player.legend += 3;
         S.rel.david = clamp((S.rel.david || 0) + 3, 0, 100);
@@ -1204,6 +1808,25 @@ function _applyLoadedState(state, label){
   try {
     S = JSON.parse(JSON.stringify(state));
     if (!S.case) S.case = { monthly:{}, lowStreak:0 };
+    // 老存档兼容：补齐工资 / 房产字段
+    if (S.player){
+      if (typeof S.player.salary !== "number") S.player.salary = 10000;
+      if (typeof S.player.lastTickKey === "undefined") S.player.lastTickKey = null;
+      if (!Array.isArray(S.player.houses)) S.player.houses = [];
+      // 旧存档迁移：单套 house -> houses[]
+      if (S.player.house && typeof S.player.house === "object"){
+        const old = S.player.house;
+        if (!old.uid) old.uid = "h" + Date.now().toString(36) + "0";
+        if (!old.renovation) old.renovation = { level: 0, year: null, cost: 0 };
+        old.isPrimary = true;
+        if (!S.player.houses.length) S.player.houses.push(old);
+        delete S.player.house;
+      }
+      // 保证至少有一套自住
+      if (S.player.houses.length && !S.player.houses.some(h => h.isPrimary)){
+        S.player.houses[0].isPrimary = true;
+      }
+    }
     if (CONTENT.injectMonthlyCases) CONTENT.injectMonthlyCases(S.caseSeed || 1);
     // 同步写入 autosave 槽，使后续 autoSave 链路正常
     try { localStorage.setItem(SAVE_KEY, JSON.stringify(S)); } catch(e){}

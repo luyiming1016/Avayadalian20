@@ -15,7 +15,7 @@
     <p class="title-tag">基于真实行业体验的虚构作品 · 2018 → 2026</p>
     <h1><span class="avaya-logo">AVAYA</span> Dalian 20年</h1>
     <h2>Backbone 传奇</h2>
-    <p class="title-sub">在大连软件园 15 号楼的一张工位上<br>用 8 年时间，把一个 L2 工程师做成传奇 Backbone</p>
+    <p class="title-sub">致敬岁月</p>
     <div class="title-btns">
       <button class="btn-primary" onclick="goto('screen-create')">▶ 开始新游戏</button>
       <button class="btn-ghost" onclick="loadGame()">⟲ 读取存档</button>
@@ -269,11 +269,22 @@
       <span class="tb-stat" title="抗压">🛡 <b id="ui-res">40</b></span>
       <span class="tb-stat" title="健康">❤ <b id="ui-hp">80</b></span>
       <span class="tb-stat" title="金钱（万元）">¥ <b id="ui-money">12</b>w</span>
+      <span class="tb-stat" title="月薪（元）">💵 <b id="ui-salary">10,000</b></span>
       <span class="tb-stat" title="OCD / Siebel Case 分">SR <b id="ui-case">0</b></span>
     </div>
     <div class="tb-right">
-      <button class="btn-icon" onclick="saveGame()" title="存档">💾</button>
-      <button class="btn-icon" onclick="goto('screen-title')" title="返回标题">⌂</button>
+      <button class="tb-btn tb-btn-housing" onclick="openHousing()" title="打开贝壳大连楼市">
+        <span class="tb-btn-ico">🏠</span><span class="tb-btn-txt">楼市</span>
+      </button>
+      <button class="tb-btn tb-btn-assets" onclick="openAssets()" title="查看持有资产 / 切换自住 / 装修 / 卖出">
+        <span class="tb-btn-ico">📁</span><span class="tb-btn-txt">资产</span>
+      </button>
+      <button class="tb-btn tb-btn-save" onclick="saveGame()" title="存档管理">
+        <span class="tb-btn-ico">💾</span><span class="tb-btn-txt">存档</span>
+      </button>
+      <button class="tb-btn tb-btn-home" onclick="goto('screen-title')" title="返回主菜单">
+        <span class="tb-btn-ico">⌂</span><span class="tb-btn-txt">主菜单</span>
+      </button>
     </div>
   </header>
 
@@ -430,6 +441,110 @@
   </div>
 </section>
 
+<!-- ============= 楼市 ============= -->
+<section id="screen-housing" class="screen">
+  <div class="housing-panel">
+    <header class="housing-header">
+      <div class="housing-header-left">
+        <h2><span class="bk-logo">贝壳</span>大连 · <span id="hs-year">2018</span></h2>
+        <p class="housing-sub" id="hs-sub">看房买房 · 500 套真实楼盘 · 价格随年份波动</p>
+      </div>
+      <div class="housing-header-right">
+        <div class="housing-money">
+          <span class="hm-lbl">手头资金</span>
+          <b id="hs-money">¥ 12 w</b>
+        </div>
+        <button class="btn-ghost" onclick="closeHousing()">← 返回</button>
+      </div>
+    </header>
+
+    <div class="housing-status" id="hs-status">
+      <span class="hs-tag">居住</span>
+      <span id="hs-live">—</span>
+      <span class="hs-result-count" id="hs-count">—</span>
+    </div>
+
+    <div class="housing-filters">
+      <div class="hs-filter-row">
+        <span class="hs-filter-lbl">类型</span>
+        <div class="opt-group hs-tabs" id="hs-tabs">
+          <button class="opt active" data-v="all">全部</button>
+          <button class="opt" data-v="new">新房</button>
+          <button class="opt" data-v="second">二手房</button>
+        </div>
+      </div>
+      <div class="hs-filter-row">
+        <span class="hs-filter-lbl">户型</span>
+        <div class="opt-group hs-rooms" id="hs-rooms">
+          <button class="opt active" data-v="all">全部</button>
+          <button class="opt" data-v="1">1 室</button>
+          <button class="opt" data-v="2">2 室</button>
+          <button class="opt" data-v="3">3 室</button>
+          <button class="opt" data-v="4+">4 室+</button>
+          <button class="opt" data-v="villa">别墅</button>
+        </div>
+      </div>
+      <div class="hs-filter-row">
+        <span class="hs-filter-lbl">总价</span>
+        <div class="opt-group hs-price" id="hs-price">
+          <button class="opt active" data-v="all">全部</button>
+          <button class="opt" data-v="<50">50 万以下</button>
+          <button class="opt" data-v="50-150">50–150 万</button>
+          <button class="opt" data-v="150-300">150–300 万</button>
+          <button class="opt" data-v="300-600">300–600 万</button>
+          <button class="opt" data-v="600+">600 万+</button>
+        </div>
+      </div>
+      <div class="hs-filter-row">
+        <span class="hs-filter-lbl">区域</span>
+        <div class="opt-group hs-dist" id="hs-dist">
+          <button class="opt active" data-v="all">全部区域</button>
+        </div>
+      </div>
+      <div class="hs-filter-row hs-sort-row">
+        <span class="hs-filter-lbl">排序</span>
+        <div class="opt-group hs-sort" id="hs-sort">
+          <button class="opt active" data-v="default">默认</button>
+          <button class="opt" data-v="totalAsc">总价 ↑</button>
+          <button class="opt" data-v="totalDesc">总价 ↓</button>
+          <button class="opt" data-v="unitAsc">单价 ↑</button>
+          <button class="opt" data-v="unitDesc">单价 ↓</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="housing-grid" id="hs-grid"></div>
+  </div>
+
+  <!-- 详情/购房弹窗 -->
+  <div id="hs-modal" class="hs-modal hidden">
+    <div class="hs-modal-card" id="hs-modal-card"></div>
+  </div>
+</section>
+
+<!-- ============= 资产 · 房产管理 ============= -->
+<section id="screen-assets" class="screen">
+  <div class="assets-panel">
+    <header class="assets-header">
+      <div class="assets-header-left">
+        <h2>我的资产 · <span id="as-year">2018</span></h2>
+        <p class="assets-sub">所有持有房产 · 切换自住 / 装修 / 卖出变现</p>
+      </div>
+      <div class="assets-header-right">
+        <div class="housing-money">
+          <span class="hm-lbl">手头资金</span>
+          <b id="as-money">¥ 12 w</b>
+        </div>
+        <button class="btn-ghost" onclick="closeAssets()">← 返回</button>
+      </div>
+    </header>
+
+    <div class="as-summary" id="as-summary"></div>
+
+    <div class="as-list" id="as-list"></div>
+  </div>
+</section>
+
 <!-- ============= 悬浮提示层 ============= -->
 <div id="toast" class="toast hidden"></div>
 <div id="modal" class="modal hidden">
@@ -442,6 +557,7 @@
 
 <script src="content.js"></script>
 <script src="news.js"></script>
+<script src="housing.js"></script>
 <script src="game.js"></script>
 </body>
 </html>

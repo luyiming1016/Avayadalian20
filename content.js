@@ -402,6 +402,24 @@ const CONTENT = {
           ]
         },
         {
+          id:"y23-1b", beat:null, requireNoHouse:true, title:"Q1 · 家里催房 · 第一次正经看房",
+          scene:"home", emoji:"🏠",
+          body:[
+            {type:"narr", text:"周末回家吃饭，双方父母轮番出招——「该买房了，租房不是个事儿」。TA 把手机递过来，链接是一份链家 + 贝壳的清单。"},
+            {type:"dialog", who:"伴侣", text:"我们也不是要一步到位。但有套属于自己的房，心里才稳。要不周末就抽空去走走？"},
+            {type:"p", text:"系统提示：右上角 🏠「楼市」可随时打开看房；本次你也可以选择推迟，等存够钱再说。"}
+          ],
+          choices:[
+            {label:"现在就去看房", tag:"EQ", sub:"打开楼市详情 · 慎选户型与还款方式",
+              effects:{spouse:6, family:4, log:"婚后第一次正经看房"},
+              action:"openHousing"},
+            {label:"再攒半年首付，先稳一年", tag:"EQ", sub:"伴侣略失落 · 父母不悦",
+              effects:{spouse:-4, family:-3, log:"看房 · 推迟半年"}},
+            {label:"先看出租升级，房子以后说", tag:"danger", sub:"短期省心，长期父母施压",
+              effects:{spouse:-8, family:-8, money:-2, log:"看房 · 改租大房"}}
+          ]
+        },
+        {
           id:"y23-2", beat:"节点 9 · 公司重组 · 站队", title:"Q2 · Frank 空降",
           scene:"conference", emoji:"♟",
           body:[
