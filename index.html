@@ -101,16 +101,44 @@
           <div class="av-row">
             <span class="av-lbl">发型</span>
             <div class="opt-group av-opts" id="av-top">
-              <button type="button" class="opt active" data-v="shortFlat">短直</button>
-              <button type="button" class="opt" data-v="shortWaved">短卷</button>
-              <button type="button" class="opt" data-v="shortCurly">短卷曲</button>
-              <button type="button" class="opt" data-v="bigHair">大波浪</button>
-              <button type="button" class="opt" data-v="bob">波波头</button>
-              <button type="button" class="opt" data-v="longStraight">长直</button>
-              <button type="button" class="opt" data-v="longButNotTooLong">中长</button>
-              <button type="button" class="opt" data-v="curvy">蓬松</button>
-              <button type="button" class="opt" data-v="hat">帽子</button>
-              <button type="button" class="opt" data-v="noHair">光头</button>
+              <button type="button" class="opt active" data-v="shortFlat" data-g="M">短直 (男)</button>
+              <button type="button" class="opt" data-v="shortWaved" data-g="M">短卷 (男)</button>
+              <button type="button" class="opt" data-v="shortCurly" data-g="M">短卷曲 (男)</button>
+              <button type="button" class="opt" data-v="theCaesar" data-g="M">凯撒头 (男)</button>
+              <button type="button" class="opt" data-v="shortRound" data-g="M">圆寸 (男)</button>
+              <button type="button" class="opt" data-v="longButNotTooLong" data-g="F">中长直 (女)</button>
+              <button type="button" class="opt" data-v="straight01" data-g="F">长直发 (女)</button>
+              <button type="button" class="opt" data-v="straight02" data-g="F">侧分长发 (女)</button>
+              <button type="button" class="opt" data-v="bigHair" data-g="F">大波浪 (女)</button>
+              <button type="button" class="opt" data-v="bob" data-g="F">波波头 (女)</button>
+              <button type="button" class="opt" data-v="curvy" data-g="F">蓬松卷 (女)</button>
+              <button type="button" class="opt" data-v="miaWallace" data-g="F">齐刘海 (女)</button>
+              <button type="button" class="opt" data-v="hat" data-g="N">帽子</button>
+              <button type="button" class="opt" data-v="hijab" data-g="N">头巾</button>
+              <button type="button" class="opt" data-v="noHair" data-g="N">光头</button>
+            </div>
+          </div>
+          <div class="av-row">
+            <span class="av-lbl">发色</span>
+            <div class="opt-group av-opts av-swatches" id="av-haircolor">
+              <button type="button" class="opt swatch active" data-v="2c1b18" title="黑色" style="--c:#2c1b18"></button>
+              <button type="button" class="opt swatch" data-v="4a312c" title="深棕" style="--c:#4a312c"></button>
+              <button type="button" class="opt swatch" data-v="724133" title="棕色" style="--c:#724133"></button>
+              <button type="button" class="opt swatch" data-v="a55728" title="栗色" style="--c:#a55728"></button>
+              <button type="button" class="opt swatch" data-v="b58143" title="浅棕" style="--c:#b58143"></button>
+              <button type="button" class="opt swatch" data-v="d6b370" title="金色" style="--c:#d6b370"></button>
+              <button type="button" class="opt swatch" data-v="c93305" title="红色" style="--c:#c93305"></button>
+              <button type="button" class="opt swatch" data-v="e8e1e1" title="银白" style="--c:#e8e1e1"></button>
+            </div>
+          </div>
+          <div class="av-row">
+            <span class="av-lbl">胡须</span>
+            <div class="opt-group av-opts" id="av-beard">
+              <button type="button" class="opt active" data-v="none">无</button>
+              <button type="button" class="opt" data-v="beardLight">浅胡</button>
+              <button type="button" class="opt" data-v="beardMedium">浓胡</button>
+              <button type="button" class="opt" data-v="beardMajestic">络腮</button>
+              <button type="button" class="opt" data-v="moustacheFancy">小胡子</button>
             </div>
           </div>
           <div class="av-row">
@@ -122,6 +150,17 @@
               <button type="button" class="opt" data-v="prescription02">细框眼镜</button>
               <button type="button" class="opt" data-v="sunglasses">墨镜</button>
               <button type="button" class="opt" data-v="wayfarers">复古眼镜</button>
+            </div>
+          </div>
+          <div class="av-row">
+            <span class="av-lbl">眼睛</span>
+            <div class="opt-group av-opts" id="av-eyes">
+              <button type="button" class="opt active" data-v="default">普通</button>
+              <button type="button" class="opt" data-v="happy">弯月</button>
+              <button type="button" class="opt" data-v="wink">眨眼</button>
+              <button type="button" class="opt" data-v="surprised">惊讶</button>
+              <button type="button" class="opt" data-v="squint">眯眼</button>
+              <button type="button" class="opt" data-v="hearts">心形</button>
             </div>
           </div>
           <div class="av-row">
@@ -139,10 +178,29 @@
             <div class="opt-group av-opts" id="av-cloth">
               <button type="button" class="opt active" data-v="blazerAndShirt">西装衬衫</button>
               <button type="button" class="opt" data-v="blazerAndSweater">西装毛衣</button>
+              <button type="button" class="opt" data-v="collarAndSweater">毛衣 + 衬领</button>
               <button type="button" class="opt" data-v="hoodie">连帽衫</button>
               <button type="button" class="opt" data-v="shirtVNeck">V 领</button>
               <button type="button" class="opt" data-v="shirtCrewNeck">圆领</button>
+              <button type="button" class="opt" data-v="shirtScoopNeck">U 领</button>
+              <button type="button" class="opt" data-v="graphicShirt">印花 T</button>
               <button type="button" class="opt" data-v="overall">工装</button>
+            </div>
+          </div>
+          <div class="av-row">
+            <span class="av-lbl">衣色</span>
+            <div class="opt-group av-opts av-swatches" id="av-clothcolor">
+              <button type="button" class="opt swatch active" data-v="262e33" title="深灰" style="--c:#262e33"></button>
+              <button type="button" class="opt swatch" data-v="3c4f5c" title="蓝灰" style="--c:#3c4f5c"></button>
+              <button type="button" class="opt swatch" data-v="25557c" title="深蓝" style="--c:#25557c"></button>
+              <button type="button" class="opt swatch" data-v="5199e4" title="蓝" style="--c:#5199e4"></button>
+              <button type="button" class="opt swatch" data-v="65c9ff" title="天蓝" style="--c:#65c9ff"></button>
+              <button type="button" class="opt swatch" data-v="ff488e" title="粉红" style="--c:#ff488e"></button>
+              <button type="button" class="opt swatch" data-v="ff5c5c" title="红" style="--c:#ff5c5c"></button>
+              <button type="button" class="opt swatch" data-v="ffafb9" title="浅粉" style="--c:#ffafb9"></button>
+              <button type="button" class="opt swatch" data-v="a7ffc4" title="薄荷" style="--c:#a7ffc4"></button>
+              <button type="button" class="opt swatch" data-v="ffdeb5" title="米色" style="--c:#ffdeb5"></button>
+              <button type="button" class="opt swatch" data-v="ffffff" title="白" style="--c:#ffffff"></button>
             </div>
           </div>
         </div>

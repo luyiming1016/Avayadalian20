@@ -3025,36 +3025,48 @@ input { font-family: inherit; }
   gap: 6px;
 }
 #screen-create .av-opts .opt {
-  font: 600 12px/1 Arial, "Microsoft YaHei", sans-serif;
-  padding: 6px 10px;
-  background: #ffffff;
-  border: 1px solid #c4cad3;
-  color: #2d3748;
-  border-radius: 0;
+  font: 600 12px/1 Arial, "Microsoft YaHei", sans-serif !important;
+  padding: 6px 10px !important;
+  min-height: 0 !important;
+  background: linear-gradient(#fff, #f0f3f5) !important;
+  border: 1px solid #c4cad3 !important;
+  color: #2d3748 !important;
+  border-radius: 0 !important;
   cursor: pointer;
   transition: background .12s, border-color .12s, color .12s;
 }
-#screen-create .av-opts .opt:hover { background: #eef3f7; border-color: #8aa0b0; }
+#screen-create .av-opts .opt:hover {
+  background: #eef3f7 !important;
+  border-color: #8aa0b0 !important;
+  color: #145164 !important;
+}
 #screen-create .av-opts .opt.active {
-  background: #4a9bb1;
-  border-color: #2f7a8e;
-  color: #fff;
+  background: linear-gradient(#d90000, #b00000) !important;
+  border-color: #800000 !important;
+  color: #fff !important;
+  font-weight: 700 !important;
 }
 #screen-create .av-swatches { gap: 8px; }
 #screen-create .av-swatches .swatch {
-  width: 26px;
-  height: 26px;
-  padding: 0;
-  background: var(--c, #ccc);
-  border: 2px solid #c4cad3;
-  border-radius: 50%;
+  width: 28px !important;
+  height: 28px !important;
+  min-height: 0 !important;
+  padding: 0 !important;
+  background: var(--c, #ccc) !important;
+  border: 2px solid #c4cad3 !important;
+  border-radius: 50% !important;
   cursor: pointer;
   position: relative;
+  color: transparent !important;
 }
-#screen-create .av-swatches .swatch:hover { border-color: #4a9bb1; }
+#screen-create .av-swatches .swatch:hover {
+  background: var(--c, #ccc) !important;
+  border-color: #4a9bb1 !important;
+}
 #screen-create .av-swatches .swatch.active {
-  border-color: #d90000;
-  box-shadow: 0 0 0 2px #fff, 0 0 0 3px #d90000;
+  background: var(--c, #ccc) !important;
+  border-color: #d90000 !important;
+  box-shadow: 0 0 0 2px #fff, 0 0 0 3px #d90000 !important;
 }
 
 #screen-game .pc-avatar-img {

@@ -48,30 +48,44 @@ document.querySelectorAll(".opt-group").forEach(g => {
     g.querySelectorAll(".opt").forEach(b => b.classList.remove("active"));
     e.target.classList.add("active");
     if (g.id && g.id.indexOf("av-") === 0) updateAvatarPreview();
-    if (g.id === "opt-gender") updateAvatarPreview();
+    else if (g.id === "opt-gender") syncAvatarToGender(e.target.dataset.v);
   });
 });
 
 /* ---------- 头像自定（DiceBear avataaars） ---------- */
 const AVATAR_BASE = "https://api.dicebear.com/9.x/avataaars/svg";
-const AV_HAIR_COLORS = ["2c1b18","4a312c","724133","a55728","b58143","c93305","d6b370","e8e1e1"];
-const AV_CLOTH_COLORS = ["3c4f5c","262e33","65c9ff","5199e4","25557c","929598","a7ffc4","b1e2ff","ff488e","ff5c5c","ffafb9","ffdeb5","ffffb1","ffffff"];
+const AV_GROUP_IDS = [
+  "av-skin","av-top","av-haircolor","av-beard",
+  "av-acc","av-eyes","av-mouth","av-cloth","av-clothcolor"
+];
+const AV_GENDER_HAIR = {
+  M: ["shortFlat","shortWaved","shortCurly","theCaesar","shortRound"],
+  F: ["longButNotTooLong","straight01","straight02","bigHair","bob","curvy","miaWallace"],
+  N: ["hat","hijab","noHair"]
+};
 function buildAvatarUrl(opts){
   const o = opts || getCurrentAvatarOpts();
   if (!o) return AVATAR_BASE + "?seed=Mo+Li";
   const p = new URLSearchParams();
   p.set("seed", o.seed || "Mo Li");
-  if (o.skin)  p.set("skinColor", o.skin);
-  if (o.top)   p.set("top", o.top);
-  if (o.mouth) p.set("mouth", o.mouth);
-  if (o.cloth) p.set("clothing", o.cloth);
-  if (o.hairColor) p.set("hairColor", o.hairColor);
+  if (o.skin)       p.set("skinColor", o.skin);
+  if (o.top)        p.set("top", o.top);
+  if (o.hairColor)  p.set("hairColor", o.hairColor);
+  if (o.mouth)      p.set("mouth", o.mouth);
+  if (o.eyes)       p.set("eyes", o.eyes);
+  if (o.cloth)      p.set("clothing", o.cloth);
   if (o.clothColor) p.set("clothesColor", o.clothColor);
   if (o.acc && o.acc !== "none"){
     p.set("accessories", o.acc);
     p.set("accessoriesProbability", "100");
   } else {
     p.set("accessoriesProbability", "0");
+  }
+  if (o.beard && o.beard !== "none"){
+    p.set("facialHair", o.beard);
+    p.set("facialHairProbability", "100");
+  } else {
+    p.set("facialHairProbability", "0");
   }
   return AVATAR_BASE + "?" + p.toString();
 }
@@ -81,6 +95,15 @@ function _getActiveOpt(groupId, fallback){
   const a = g.querySelector(".opt.active");
   return a ? a.dataset.v : fallback;
 }
+function _setActiveOpt(groupId, value){
+  const g = document.getElementById(groupId);
+  if (!g) return false;
+  const target = g.querySelector(`.opt[data-v="${value}"]`);
+  if (!target) return false;
+  g.querySelectorAll(".opt").forEach(b => b.classList.remove("active"));
+  target.classList.add("active");
+  return true;
+}
 function getCurrentAvatarOpts(){
   const seedEl = document.getElementById("avatar-img");
   const seedAttr = seedEl && seedEl.dataset ? seedEl.dataset.seed : null;
@@ -88,13 +111,15 @@ function getCurrentAvatarOpts(){
   const seed = seedAttr || (nameEl && nameEl.value) || "Mo Li";
   return {
     seed: seed,
-    skin:  _getActiveOpt("av-skin",  "edb98a"),
-    top:   _getActiveOpt("av-top",   "shortFlat"),
-    acc:   _getActiveOpt("av-acc",   "none"),
-    mouth: _getActiveOpt("av-mouth", "default"),
-    cloth: _getActiveOpt("av-cloth", "blazerAndShirt"),
-    hairColor: window._avHairColor || "2c1b18",
-    clothColor: window._avClothColor || "262e33"
+    skin:       _getActiveOpt("av-skin",       "edb98a"),
+    top:        _getActiveOpt("av-top",        "shortFlat"),
+    hairColor:  _getActiveOpt("av-haircolor",  "2c1b18"),
+    beard:      _getActiveOpt("av-beard",      "none"),
+    acc:        _getActiveOpt("av-acc",        "none"),
+    eyes:       _getActiveOpt("av-eyes",       "default"),
+    mouth:      _getActiveOpt("av-mouth",      "default"),
+    cloth:      _getActiveOpt("av-cloth",      "blazerAndShirt"),
+    clothColor: _getActiveOpt("av-clothcolor", "262e33")
   };
 }
 function updateAvatarPreview(){
@@ -104,7 +129,23 @@ function updateAvatarPreview(){
   img.dataset.seed = opts.seed;
   img.src = buildAvatarUrl(opts);
 }
+function syncAvatarToGender(gender){
+  // 切换性别时挑一个匹配的发型；女性默认无胡须
+  const g = gender || _getActiveOpt("opt-gender", "M");
+  const currentTop = _getActiveOpt("av-top", null);
+  const isMaleTop = AV_GENDER_HAIR.M.indexOf(currentTop) >= 0;
+  const isFemaleTop = AV_GENDER_HAIR.F.indexOf(currentTop) >= 0;
+  if (g === "F" && !isFemaleTop){
+    _setActiveOpt("av-top", AV_GENDER_HAIR.F[0]);
+    _setActiveOpt("av-beard", "none");
+  } else if (g === "M" && !isMaleTop){
+    _setActiveOpt("av-top", AV_GENDER_HAIR.M[0]);
+  }
+  if (g === "F") _setActiveOpt("av-beard", "none");
+  updateAvatarPreview();
+}
 function randomizeAvatar(){
+  const gender = _getActiveOpt("opt-gender", "M");
   const pickRand = (groupId) => {
     const g = document.getElementById(groupId);
     if (!g) return;
@@ -114,9 +155,11 @@ function randomizeAvatar(){
     g.querySelectorAll(".opt").forEach(b => b.classList.remove("active"));
     pick.classList.add("active");
   };
-  ["av-skin","av-top","av-acc","av-mouth","av-cloth"].forEach(pickRand);
-  window._avHairColor  = AV_HAIR_COLORS[Math.floor(Math.random()*AV_HAIR_COLORS.length)];
-  window._avClothColor = AV_CLOTH_COLORS[Math.floor(Math.random()*AV_CLOTH_COLORS.length)];
+  AV_GROUP_IDS.forEach(pickRand);
+  // 用性别限制发型与胡须
+  const tops = AV_GENDER_HAIR[gender] || AV_GENDER_HAIR.M;
+  _setActiveOpt("av-top", tops[Math.floor(Math.random()*tops.length)]);
+  if (gender === "F") _setActiveOpt("av-beard", "none");
   const img = document.getElementById("avatar-img");
   if (img) img.dataset.seed = "S-" + Math.random().toString(36).slice(2, 10);
   updateAvatarPreview();
