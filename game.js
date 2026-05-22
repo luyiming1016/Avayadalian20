@@ -109,11 +109,15 @@ function startGame(){
 
 /* ---------- 顶部状态条 ---------- */
 function renderTopBar(){
-  const yr = CONTENT.years[S.yearIdx]?.year || 2018;
-  document.getElementById("ui-date").textContent = `${yr}`;
-  // 简易季节：按 event 序号
-  const seasons = ["❄ 冬","🌸 春","☀ 夏","🍂 秋","❄ 冬"];
-  document.getElementById("ui-season").textContent = seasons[S.eventIdx] || "❄ 冬";
+  const yearData = CONTENT.years[S.yearIdx];
+  const yr = yearData?.year || 2018;
+  const evForTime = yearData?.events?.[S.eventIdx];
+  const month = evForTime?.month;
+  document.getElementById("ui-date").textContent = month ? `${yr}-${String(month).padStart(2, "0")}` : `${yr}`;
+  document.getElementById("ui-season").textContent = month >= 3 && month <= 5 ? "🌸 春"
+    : month >= 6 && month <= 8 ? "☀ 夏"
+    : month >= 9 && month <= 11 ? "🍂 秋"
+    : "❄ 冬";
   document.getElementById("ui-grade").textContent = S.player.grade;
 
   const p = S.player;
@@ -185,7 +189,7 @@ function renderEvent(){
 
   document.getElementById("event-title").textContent = ev.title;
   document.getElementById("event-meta").textContent =
-    `${year.year} · 第${[ "一","二","三","四","五","六","七","八","九" ][S.yearIdx]||""}年 · ${ev.beat || "日常"}`;
+    `${year.year}${ev.month ? `-${String(ev.month).padStart(2, "0")}` : ""} · 第${[ "一","二","三","四","五","六","七","八","九" ][S.yearIdx]||""}年 · ${ev.beat || "日常"}`;
   document.getElementById("event-body").innerHTML = renderBody(ev.body);
 
   // 场景图

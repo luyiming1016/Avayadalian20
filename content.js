@@ -861,3 +861,201 @@ const CONTENT = {
     }
   }
 };
+
+/* =================================================================
+ * 月度剧情扩展
+ * -----------------------------------------------------------------
+ * 保留原主线事件，同时为每年补齐月度日常，并固定加入：
+ * - 每年 4 月：工会三天两晚 outing（前期省外，后期预算收缩为省内）
+ * - 每年 5 月：大连市工会划龙舟比赛（落在 2-6 月活动季）
+ * - 每年 10-12 月：工会 5 公里跑步活动
+ * ================================================================= */
+(function expandMonthlyStory(){
+  const anchorMonths = {
+    "y18-1":1, "y18-2":4, "y18-3":7, "y18-4":8,
+    "y19-1":6, "y19-2":9, "y19-3":10, "y19-4":12,
+    "y20-1":1, "y20-2":6, "y20-3":9, "y20-4":12,
+    "y21-1":1, "y21-2":6, "y21-3":9, "y21-4":12,
+    "y22-1":2, "y22-2":6, "y22-3":9, "y22-4":12,
+    "y23-1":1, "y23-2":6, "y23-3":9, "y23-4":11,
+    "y24-1":1, "y24-2":6, "y24-3":9, "y24-4":12,
+    "y25-1":6, "y25-2":8, "y25-3":10, "y25-4":12,
+    "y26-1":1, "y26-2":6, "y26-3":8, "y26-4":9
+  };
+
+  const arcs = {
+    2018: {stage:"新人期", work:"把老 K 的 checklist 抄进自己的笔记本，开始分清 BI、SBI 和真正会让客户半夜打电话的东西。", home:"出租屋的暖气有时不热，你习惯了在下班路上买一份关东煮。"},
+    2019: {stage:"站稳期", work:"你开始独立接 case，也开始明白客户真正要的不是术语，而是一个可执行的下一步。", home:"周末的滨海路和咖啡馆慢慢变得具体，手机里多了一个会等你下班的人。"},
+    2020: {stage:"远程救火期", work:"远程办公把客厅变成了工位，全球客户的时区压在同一块屏幕上。", home:"城市安静下来，外卖袋挂在门把手上，你第一次把大连当成需要守住的地方。"},
+    2021: {stage:"同居成长期", work:"AXP、SBC、云化路线在会议里反复出现，你的名字也越来越常被 David 点到。", home:"两个人的日用品开始挤满洗手台，争吵和晚饭一样成为生活的一部分。"},
+    2022: {stage:"高光与代价", work:"晋升候选池、婚礼筹备和老同事离开挤在同一年，你学会在人群里笑，在工位上沉默。", home:"戒指、婚纱照和房租账单并排放在桌上，每一项都不像演习。"},
+    2023: {stage:"重组站队期", work:"Frank 空降后，会议纪要的措辞开始变得锋利，站队不再是八卦。", home:"备孕日历贴在冰箱上，你每次深夜回家都会下意识把门关轻一点。"},
+    2024: {stage:"Infinity 转型期", work:"AI RCA、Infinity Bootcamp 和客户质疑一起袭来，旧经验开始被迫重写。", home:"B 超单夹在工牌套后面，你知道家里也在等一个更稳定的答案。"},
+    2025: {stage:"父亲预备期", work:"团队更瘦了，case 更重了，小赵看你的眼神像当年你看老 K。", home:"胎动、学区房和裁员传闻轮流敲门，你不再只替自己做选择。"},
+    2026: {stage:"潮水退去期", work:"名单、交接、知识库和沉默的会议邀请逐渐拼成一张完整的图。", home:"产检包放在玄关，手机里的每一次震动都像同时来自医院和 HR。"}
+  };
+
+  const outingDest = {
+    2018:"山东青岛", 2019:"北京延庆", 2020:"吉林长春", 2021:"河北秦皇岛",
+    2022:"辽宁丹东", 2023:"辽宁本溪", 2024:"辽宁营口", 2025:"旅顺口", 2026:"庄河冰峪沟"
+  };
+
+  const monthlyHooks = {
+    1:"年初的目标设定会上，David 把团队指标投到白板上，所有人的名字都被放进一张新的表格。",
+    2:"春节后的办公室还没完全坐满，客户邮件却先一步恢复了速度。",
+    3:"三月的绩效自评开始收口，你把过去几个月的 case 重新翻出来，试图给自己找证据。",
+    4:"四月的园区风里有海腥味，工会通知和项目升级排期一起弹进邮箱。",
+    5:"五月的午休被训练、排练和客户 escalations 切成碎片，大家嘴上抱怨，身体还是去了。",
+    6:"年中复盘把所有人的节奏往前推了一格，未关闭的 SBI 像桌面上没喝完的咖啡。",
+    7:"七月的空调很冷，会议室里却总有人把话说得越来越热。",
+    8:"八月的园区雨水多，工位旁的纸箱开始堆着新设备和旧耳机。",
+    9:"九月的 queue 进入新一轮高峰，客户问的是故障，你听见的是预算和人手。",
+    10:"十月的风从星海吹到软件园，团队开始提前讨论年末 freeze 和明年的组织架构。",
+    11:"十一月的日程像被压缩过，跑步、复盘、排班和家庭安排挤在同一页日历。",
+    12:"十二月的灯很亮，年会、绩效和下一年的不确定性一起落在每个人肩上。"
+  };
+
+  const monthScenes = {
+    1:["office","💼"], 2:["home","🏮"], 3:["conference","📝"], 4:["goldstone","🧳"],
+    5:["sea","🚣"], 6:["warroom","📈"], 7:["desk","💻"], 8:["cafe","🌧"],
+    9:["office","📞"], 10:["dalian","🍂"], 11:["city","🏃"], 12:["party","🎄"]
+  };
+
+  function choice(label, tag, sub, effects, log){
+    return {label, tag, sub, effects, log};
+  }
+
+  function makeMonthlyEvent(year, month){
+    const arc = arcs[year.year];
+    const scene = monthScenes[month] || ["office","📌"];
+    return {
+      id:`y${String(year.year).slice(2)}-m${String(month).padStart(2,"0")}`,
+      month,
+      beat:null,
+      title:`${month}月 · ${arc.stage} · 月度回合`,
+      scene:scene[0],
+      emoji:scene[1],
+      body:[
+        {type:"narr", text:monthlyHooks[month]},
+        {type:"p", text:arc.work},
+        {type:"p", text:arc.home}
+      ],
+      choices:[
+        choice("把这个月的关键 case 写成复盘，发给团队", "legend", "技术影响力稳步累积",
+          {tech:2, comm:1, legend:1, stam:-3}, `${year.year}年${month}月 · 写下月度复盘`),
+        choice("优先把周末留给家里和自己", "EQ", "状态恢复，但曝光略少",
+          {hp:2, family:2, spouse:1, david:-1}, `${year.year}年${month}月 · 留出生活边界`)
+      ]
+    };
+  }
+
+  function makeOutingEvent(year){
+    const dest = outingDest[year.year];
+    const late = year.year >= 2022;
+    return {
+      id:`y${String(year.year).slice(2)}-union-outing`,
+      month:4,
+      beat:null,
+      title:`4月 · 工会三天两晚 Outing · ${dest}`,
+      scene: late ? "dalian" : "goldstone",
+      emoji:"🚌",
+      body:[
+        {type:"narr", text:`工会组织三天两晚 outing，目的地定在${dest}。`},
+        {type:"p", text:late
+          ? "预算收紧后，省外大巴游变成了省内短线。HR 说这是“更聚焦团队连接”，老 K 小声说这是“更聚焦成本中心”。"
+          : "早些年预算还算宽裕，大家拖着行李箱从软件园出发，车上有人唱歌，有人补觉，有人趁信号好偷偷回客户邮件。"},
+        {type:"p", text:"三天两晚里，白天是合影、拓展和饭桌寒暄，晚上才是真正的团队消息交换时间。你听见一些升职传闻，也听见一些关于外包比例的低声讨论。"}
+      ],
+      choices:[
+        choice("主动参加破冰和晚饭局，把跨组同事都认识一遍", "EQ", "关系网变宽，但体力被掏空",
+          {comm:2, eq:2, david:2, stam:-8}, `${year.year}年4月 · 工会 outing 主动破冰`),
+        choice("白天配合活动，晚上留在房间处理 case 和休息", "legend", "技术线稳定，社交存在感一般",
+          {tech:2, hp:2, cruce:1, david:-1}, `${year.year}年4月 · 工会 outing 保持低调`)
+      ]
+    };
+  }
+
+  function makeDragonBoatEvent(year){
+    return {
+      id:`y${String(year.year).slice(2)}-union-dragonboat`,
+      month:5,
+      beat:null,
+      title:"5月 · 大连市工会划龙舟比赛",
+      scene:"sea",
+      emoji:"🚣",
+      body:[
+        {type:"narr", text:"大连市工会把划龙舟比赛安排在 2-6 月活动季里。园区各家公司都派队，Avara Dalian 的队服红得很显眼。"},
+        {type:"p", text:"训练地点在海边，鼓点一响，平时在 Webex 里互相 mute 的人忽然要在同一条船上找节奏。"},
+        {type:"dialog", who:"Cruce", text:"划龙舟跟救火一样，最怕一个人特别用力，其他人全乱。"}
+      ],
+      choices:[
+        choice("报名上船，跟着鼓点划完全程", "cruce", "团队默契上升，手臂第二天很诚实",
+          {stam:-6, hp:1, cruce:3, comm:1}, `${year.year}年5月 · 参加工会龙舟赛`),
+        choice("做后勤和摄影，把大家的狼狈剪成一条热视频", "EQ", "不下水也能让大家记住",
+          {comm:2, eq:2, david:1}, `${year.year}年5月 · 龙舟赛后勤摄影`)
+      ]
+    };
+  }
+
+  function makeRunEvent(year){
+    const month = year.year === 2026 ? 10 : 11;
+    return {
+      id:`y${String(year.year).slice(2)}-union-run5k`,
+      month,
+      beat:null,
+      title:`${month}月 · 工会 5 公里跑步活动`,
+      scene:"city",
+      emoji:"🏃",
+      body:[
+        {type:"narr", text:"工会组织 5 公里跑步活动，路线沿着园区外侧和海边绿道绕一圈。号码布别在胸前，像另一种临时工牌。"},
+        {type:"p", text:year.year >= 2024
+          ? "这几年队伍明显小了，熟面孔少了不少。起跑前大家还是笑着拍照，只是合影里空出来的位置越来越多。"
+          : "那时队伍还很整齐，David 在起点拍手催大家热身，老 K 说自己只是来散步，结果跑得比新人还稳。"},
+        {type:"p", text:"跑到第三公里时，你忽然发现工作里的很多坎也是这样：没人替你跑，但有人可以在旁边递水。"}
+      ],
+      choices:[
+        choice("认真跑完全程，最后 500 米还带了同事一把", "legend", "体能和团队声望上升",
+          {hp:2, res:2, legend:1, stam:-4}, `${year.year}年${month}月 · 工会 5 公里完赛`),
+        choice("陪跑慢组，边跑边听同事吐槽这一年的变化", "EQ", "关系更稳，也听见更多风声",
+          {eq:2, comm:1, cruce:2, david:1}, `${year.year}年${month}月 · 工会 5 公里陪跑`)
+      ]
+    };
+  }
+
+  function eventSortKey(ev, order){
+    const priority = ev.id && ev.id.indexOf("union-outing") > -1 ? 20
+      : ev.id && ev.id.indexOf("union-dragonboat") > -1 ? 30
+      : ev.id && ev.id.indexOf("union-run5k") > -1 ? 40
+      : ev.beat ? 50
+      : 10;
+    return (ev.month || 12) * 100 + priority + order / 100;
+  }
+
+  CONTENT.years.forEach(year => {
+    const expanded = [];
+    const originals = (year.events || []).map((ev, order) => {
+      const clone = Object.assign({}, ev);
+      clone.month = anchorMonths[clone.id] || order + 1;
+      clone._order = order;
+      return clone;
+    });
+
+    for (let month = 1; month <= 12; month++){
+      const hasOriginal = originals.some(ev => ev.month === month);
+      const hasMandatory = month === 4 || month === 5 || month === (year.year === 2026 ? 10 : 11);
+      if (!hasOriginal && !hasMandatory) expanded.push(makeMonthlyEvent(year, month));
+    }
+
+    expanded.push(makeOutingEvent(year));
+    expanded.push(makeDragonBoatEvent(year));
+    expanded.push(makeRunEvent(year));
+    expanded.push(...originals);
+
+    year.events = expanded
+      .sort((a, b) => eventSortKey(a, a._order || 0) - eventSortKey(b, b._order || 0))
+      .map(ev => {
+        delete ev._order;
+        return ev;
+      });
+  });
+})();
